@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>WireFlow — Electrical Point-to-Point Tracker</title>
+<title>WireFlow v2</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet"/>
@@ -13,565 +13,516 @@
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
 :root {
-  --bg0: #080c12; --bg1: #0d1117; --bg2: #161b22; --bg3: #21262d;
-  --border: #30363d; --border2: #444c56;
-  --text: #e6edf3; --text2: #8b949e; --text3: #6e7681;
-  --blue: #58a6ff; --green: #3fb950; --yellow: #d29922;
-  --orange: #f0883e; --red: #f85149; --purple: #bc8cff;
-  --cyan: #39d0d8; --pink: #f778ba;
-  --accent: #1f6feb; --accent2: #0d419d;
-  --s0-dot: #4a5568; --s0-bg: #1a1f27;
-  font-family: 'Rajdhani', sans-serif;
+  --bg0:#080c12;--bg1:#0d1117;--bg2:#161b22;--bg3:#21262d;
+  --border:#30363d;--border2:#444c56;
+  --text:#e6edf3;--text2:#8b949e;--text3:#6e7681;
+  --blue:#58a6ff;--green:#3fb950;--yellow:#d29922;
+  --orange:#f0883e;--red:#f85149;--purple:#bc8cff;
+  --cyan:#39d0d8;--pink:#f778ba;
+  --accent:#1f6feb;--loto-open:#ff4488;--loto-closed:#3fb950;
+  font-family:'Rajdhani',sans-serif;
 }
-* { box-sizing: border-box; margin: 0; padding: 0; }
-body { background: var(--bg0); color: var(--text); font-family: 'Rajdhani', sans-serif; height: 100vh; overflow: hidden; }
-code, .mono { font-family: 'JetBrains Mono', monospace; }
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg0);color:var(--text);font-family:'Rajdhani',sans-serif;height:100vh;overflow:hidden;}
+.mono{font-family:'JetBrains Mono',monospace;}
+::-webkit-scrollbar{width:6px;height:6px;}
+::-webkit-scrollbar-track{background:var(--bg1);}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px;}
 
-/* Scrollbars */
-::-webkit-scrollbar { width: 6px; height: 6px; }
-::-webkit-scrollbar-track { background: var(--bg1); }
-::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+.btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:6px;border:1px solid var(--border);background:var(--bg3);color:var(--text);font-family:'Rajdhani',sans-serif;font-size:14px;font-weight:600;cursor:pointer;transition:all .15s;white-space:nowrap;}
+.btn:hover{border-color:var(--border2);background:var(--bg2);}
+.btn-primary{background:var(--accent);border-color:var(--accent);color:#fff;}
+.btn-primary:hover{background:#388bfd;}
+.btn-green{background:#1a3a20;border-color:var(--green);color:var(--green);}
+.btn-green:hover{background:#224a28;}
+.btn-red{background:#3a1a1a;border-color:var(--red);color:var(--red);}
+.btn-yellow{background:#3a2a00;border-color:var(--yellow);color:var(--yellow);}
+.btn-sm{padding:4px 10px;font-size:13px;}
+.btn-xs{padding:2px 8px;font-size:12px;}
 
-/* Buttons */
-.btn { display:inline-flex; align-items:center; gap:6px; padding:7px 14px; border-radius:6px; border:1px solid var(--border); background:var(--bg3); color:var(--text); font-family:'Rajdhani',sans-serif; font-size:14px; font-weight:600; cursor:pointer; transition:all .15s; white-space:nowrap; }
-.btn:hover { border-color:var(--border2); background:var(--bg2); }
-.btn-primary { background:var(--accent); border-color:var(--accent); color:#fff; }
-.btn-primary:hover { background:#388bfd; border-color:#388bfd; }
-.btn-green { background:#1a3a20; border-color:var(--green); color:var(--green); }
-.btn-green:hover { background:#224a28; }
-.btn-red { background:#3a1a1a; border-color:var(--red); color:var(--red); }
-.btn-red:hover { background:#4a2020; }
-.btn-yellow { background:#3a2a00; border-color:var(--yellow); color:var(--yellow); }
-.btn-yellow:hover { background:#4a3800; }
-.btn-sm { padding:4px 10px; font-size:13px; }
-.btn-xs { padding:2px 8px; font-size:12px; }
-
-/* Inputs */
-input, select, textarea { background:var(--bg1); border:1px solid var(--border); color:var(--text); padding:7px 10px; border-radius:6px; font-family:'Rajdhani',sans-serif; font-size:14px; width:100%; }
-input:focus, select:focus, textarea:focus { outline:none; border-color:var(--blue); }
-label { font-size:13px; color:var(--text2); margin-bottom:3px; display:block; font-weight:600; letter-spacing:.03em; }
+input,select,textarea{background:var(--bg1);border:1px solid var(--border);color:var(--text);padding:7px 10px;border-radius:6px;font-family:'Rajdhani',sans-serif;font-size:14px;width:100%;}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue);}
+label{font-size:13px;color:var(--text2);margin-bottom:3px;display:block;font-weight:600;letter-spacing:.03em;}
 
 /* Layout */
-.app { display:flex; flex-direction:column; height:100vh; }
-.topbar { display:flex; align-items:center; gap:12px; padding:10px 16px; background:var(--bg1); border-bottom:1px solid var(--border); flex-shrink:0; }
-.topbar-logo { font-size:20px; font-weight:700; color:var(--cyan); letter-spacing:.05em; }
-.topbar-logo span { color:var(--text2); font-weight:400; font-size:14px; margin-left:8px; }
-.topbar-right { margin-left:auto; display:flex; gap:8px; align-items:center; }
+.app{display:flex;flex-direction:column;height:100vh;}
 
-/* Home screen */
-.home { flex:1; overflow-y:auto; padding:32px; }
-.home-header { display:flex; align-items:center; gap:16px; margin-bottom:32px; }
-.home-title { font-size:28px; font-weight:700; color:var(--text); }
-.project-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:16px; }
-.project-card { background:var(--bg2); border:1px solid var(--border); border-radius:10px; padding:20px; cursor:pointer; transition:all .15s; }
-.project-card:hover { border-color:var(--blue); transform:translateY(-2px); }
-.pc-name { font-size:18px; font-weight:700; color:var(--text); margin-bottom:4px; }
-.pc-meta { font-size:13px; color:var(--text2); margin-bottom:16px; }
-.pc-stats { display:flex; gap:20px; margin-bottom:12px; }
-.pc-stat { text-align:center; }
-.pc-stat-val { font-size:20px; font-weight:700; color:var(--blue); font-family:'JetBrains Mono',monospace; }
-.pc-stat-label { font-size:11px; color:var(--text3); text-transform:uppercase; letter-spacing:.05em; }
-.pc-bar-wrap { background:var(--bg0); border-radius:4px; height:6px; overflow:hidden; }
-.pc-bar { height:100%; background:linear-gradient(90deg, var(--green), var(--cyan)); border-radius:4px; transition:width .3s; }
-.new-project-card { background:var(--bg1); border:2px dashed var(--border); border-radius:10px; padding:20px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:12px; font-size:15px; color:var(--text2); font-weight:600; transition:all .15s; }
-.new-project-card:hover { border-color:var(--blue); color:var(--blue); }
+/* Topbar — wordmark */
+.topbar{display:flex;align-items:center;gap:12px;padding:0 16px;background:var(--bg1);border-bottom:2px solid var(--border);flex-shrink:0;height:48px;}
+.logo{display:flex;align-items:center;gap:10px;cursor:pointer;user-select:none;}
+.logo-icon{width:30px;height:30px;display:flex;align-items:center;justify-content:center;position:relative;}
+.logo-bolt{font-size:18px;filter:drop-shadow(0 0 6px #39d0d8);}
+.logo-text{font-size:20px;font-weight:700;letter-spacing:.06em;background:linear-gradient(90deg,#39d0d8,#58a6ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.logo-sub{font-size:11px;color:var(--text3);letter-spacing:.08em;text-transform:uppercase;margin-top:-2px;-webkit-text-fill-color:var(--text3);}
+.topbar-right{margin-left:auto;display:flex;gap:8px;align-items:center;}
 
-/* Editor layout */
-.editor { display:flex; flex-direction:column; flex:1; overflow:hidden; }
-.editor-bar { display:flex; align-items:center; gap:10px; padding:8px 16px; background:var(--bg1); border-bottom:1px solid var(--border); flex-shrink:0; }
-.editor-bar-title { font-size:16px; font-weight:700; color:var(--text); }
-.editor-bar-site { font-size:13px; color:var(--text2); }
-.view-toggle { display:flex; background:var(--bg0); border:1px solid var(--border); border-radius:6px; overflow:hidden; }
-.view-btn { padding:5px 12px; font-size:13px; font-weight:600; font-family:'Rajdhani',sans-serif; cursor:pointer; border:none; background:none; color:var(--text2); transition:all .15s; }
-.view-btn.active { background:var(--bg3); color:var(--text); }
+/* Home */
+.home{flex:1;overflow-y:auto;padding:32px;}
+.home-header{display:flex;align-items:center;gap:16px;margin-bottom:32px;}
+.home-title{font-size:28px;font-weight:700;}
+.project-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;}
+.project-card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:20px;cursor:pointer;transition:all .15s;}
+.project-card:hover{border-color:var(--blue);transform:translateY(-2px);}
+.pc-name{font-size:18px;font-weight:700;margin-bottom:4px;}
+.pc-meta{font-size:13px;color:var(--text2);margin-bottom:16px;}
+.pc-stats{display:flex;gap:20px;margin-bottom:12px;}
+.pc-stat-val{font-size:20px;font-weight:700;color:var(--blue);font-family:'JetBrains Mono',monospace;}
+.pc-stat-label{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;}
+.pc-bar-wrap{background:var(--bg0);border-radius:4px;height:6px;overflow:hidden;}
+.pc-bar{height:100%;background:linear-gradient(90deg,var(--green),var(--cyan));border-radius:4px;}
+.new-card{background:var(--bg1);border:2px dashed var(--border);border-radius:10px;padding:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:12px;font-size:15px;color:var(--text2);font-weight:600;transition:all .15s;}
+.new-card:hover{border-color:var(--blue);color:var(--blue);}
 
-.editor-body { display:flex; flex:1; overflow:hidden; }
+/* Editor */
+.editor{display:flex;flex-direction:column;flex:1;overflow:hidden;}
+.editor-bar{display:flex;align-items:center;gap:10px;padding:6px 16px;background:var(--bg1);border-bottom:1px solid var(--border);flex-shrink:0;flex-wrap:wrap;}
+.view-toggle{display:flex;background:var(--bg0);border:1px solid var(--border);border-radius:6px;overflow:hidden;}
+.view-btn{padding:5px 12px;font-size:13px;font-weight:600;font-family:'Rajdhani',sans-serif;cursor:pointer;border:none;background:none;color:var(--text2);}
+.view-btn.active{background:var(--bg3);color:var(--text);}
+.editor-body{display:flex;flex:1;overflow:hidden;}
 
-/* One-line canvas */
-.canvas-wrap { position:relative; overflow:hidden; background:var(--bg0); }
-.canvas-wrap.full { flex:1; }
-.canvas-wrap.half { width:50%; border-right:1px solid var(--border); }
-svg.one-line { width:100%; height:100%; cursor:grab; }
-svg.one-line:active { cursor:grabbing; }
-.canvas-controls { position:absolute; top:12px; right:12px; display:flex; flex-direction:column; gap:6px; }
-.canvas-btn { width:32px; height:32px; background:var(--bg2); border:1px solid var(--border); border-radius:6px; color:var(--text); font-size:16px; cursor:pointer; display:flex; align-items:center; justify-content:center; }
-.canvas-btn:hover { border-color:var(--blue); color:var(--blue); }
-.canvas-hint { position:absolute; bottom:12px; left:12px; font-size:12px; color:var(--text3); }
+/* Canvas */
+.canvas-wrap{position:relative;overflow:hidden;background:var(--bg0);background-image:radial-gradient(circle,#1e2530 1px,transparent 1px);background-size:24px 24px;}
+svg.one-line{width:100%;height:100%;cursor:crosshair;}
+svg.one-line.panning{cursor:grabbing;}
+.canvas-controls{position:absolute;top:12px;right:12px;display:flex;flex-direction:column;gap:6px;}
+.canvas-btn{width:32px;height:32px;background:var(--bg2);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.canvas-btn:hover{border-color:var(--blue);color:var(--blue);}
+.canvas-hint{position:absolute;bottom:12px;left:12px;font-size:11px;color:var(--text3);}
 
-/* Tracker panel */
-.tracker { display:flex; flex-direction:column; overflow:hidden; }
-.tracker.full { flex:1; }
-.tracker.half { width:50%; }
+/* Right-click context menu */
+.ctx-menu{position:fixed;background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:4px;z-index:5000;min-width:180px;box-shadow:0 8px 24px rgba(0,0,0,.5);}
+.ctx-item{padding:8px 12px;font-size:13px;font-weight:600;cursor:pointer;border-radius:5px;display:flex;align-items:center;gap:8px;color:var(--text);}
+.ctx-item:hover{background:var(--bg3);}
+.ctx-item.danger{color:var(--red);}
+.ctx-sep{height:1px;background:var(--border);margin:4px 0;}
+
+/* Tracker */
+.tracker{display:flex;flex-direction:column;overflow:hidden;}
 
 /* KPI strip */
-.kpi-strip { display:flex; gap:0; border-bottom:1px solid var(--border); flex-shrink:0; }
-.kpi { flex:1; padding:10px 14px; border-right:1px solid var(--border); text-align:center; }
-.kpi:last-child { border-right:none; }
-.kpi-val { font-size:22px; font-weight:700; font-family:'JetBrains Mono',monospace; color:var(--blue); }
-.kpi-label { font-size:11px; color:var(--text3); text-transform:uppercase; letter-spacing:.05em; }
+.kpi-strip{display:flex;flex-shrink:0;border-bottom:1px solid var(--border);}
+.kpi{flex:1;padding:8px 12px;border-right:1px solid var(--border);text-align:center;}
+.kpi:last-child{border-right:none;}
+.kpi-val{font-size:20px;font-weight:700;font-family:'JetBrains Mono',monospace;color:var(--blue);}
+.kpi-label{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;}
+
+/* LOTO KPI — highlighted */
+.kpi.loto-kpi{background:rgba(255,68,136,.06);border-color:rgba(255,68,136,.3);}
+.kpi.loto-kpi .kpi-val{color:var(--loto-open);}
+
+/* Filter bar */
+.filter-bar{display:flex;gap:8px;padding:8px 12px;background:var(--bg1);border-bottom:1px solid var(--border);flex-shrink:0;flex-wrap:wrap;align-items:flex-end;}
+.filter-group{display:flex;flex-direction:column;gap:2px;min-width:120px;}
+.filter-group label{font-size:11px;color:var(--text3);letter-spacing:.05em;}
+.filter-group select,.filter-group input{font-size:13px;padding:5px 8px;}
+.loto-filter-btns{display:flex;gap:6px;margin-left:auto;align-items:center;}
+.loto-btn{display:flex;align-items:center;gap:5px;padding:5px 10px;border-radius:6px;border:1px solid var(--border);background:var(--bg2);font-size:12px;font-weight:700;cursor:pointer;transition:all .15s;}
+.loto-btn.locked.active{background:rgba(255,68,136,.15);border-color:var(--loto-open);color:var(--loto-open);}
+.loto-btn.unlocked.active{background:rgba(63,185,80,.15);border-color:var(--loto-closed);color:var(--loto-closed);}
+.loto-btn:not(.active){color:var(--text3);}
+
+/* Step columns header */
+.step-header-row{display:flex;gap:0;background:var(--bg2);border-bottom:1px solid var(--border);flex-shrink:0;overflow-x:auto;}
+.step-col-header{flex:0 0 58px;text-align:center;padding:4px 2px;border-right:1px solid var(--border);font-size:9px;color:var(--text3);letter-spacing:.04em;line-height:1.2;}
+.step-col-header:last-child{border-right:none;}
+.step-col-header .sh-icon{font-size:13px;display:block;}
+.sticky-cols{flex:0 0 320px;display:flex;background:var(--bg2);border-right:1px solid var(--border2);}
+.sticky-col{padding:4px 8px;font-size:10px;color:var(--text3);font-weight:700;letter-spacing:.04em;}
 
 /* Cable grid */
-.cable-grid-wrap { flex:1; overflow:auto; }
-.cable-grid { width:100%; border-collapse:collapse; }
-.cable-grid th { position:sticky; top:0; background:var(--bg2); padding:8px 12px; text-align:left; font-size:12px; color:var(--text2); font-weight:600; letter-spacing:.05em; border-bottom:1px solid var(--border); white-space:nowrap; z-index:10; }
-.cable-grid td { padding:8px 12px; font-size:13px; border-bottom:1px solid var(--bg2); white-space:nowrap; }
-.cable-grid tr:hover td { background:var(--bg2); }
-.cable-grid tr.selected td { background:var(--bg3); }
-.tag { font-family:'JetBrains Mono',monospace; font-size:12px; background:var(--bg3); padding:2px 6px; border-radius:4px; color:var(--text2); }
-.step-dots { display:flex; gap:3px; }
-.step-dot { width:10px; height:10px; border-radius:50%; }
+.cable-grid-wrap{flex:1;overflow-y:auto;overflow-x:auto;}
+.cable-row{display:flex;border-bottom:1px solid var(--bg3);cursor:pointer;transition:background .1s;align-items:stretch;}
+.cable-row:hover{background:var(--bg2);}
+.cable-row.selected{background:var(--bg3);}
+.cable-row.loto-active{border-left:3px solid var(--loto-open);}
+.cable-info{flex:0 0 320px;display:flex;align-items:center;gap:8px;padding:6px 8px;border-right:1px solid var(--border2);background:inherit;}
+.cable-tag{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--cyan);font-weight:700;}
+.cable-route{font-size:11px;color:var(--text2);}
+.step-cells{display:flex;gap:0;align-items:center;overflow-x:visible;}
+.step-cell{flex:0 0 58px;display:flex;align-items:center;justify-content:center;padding:4px 2px;border-right:1px solid var(--bg3);height:100%;min-height:36px;}
+.step-cell:last-child{border-right:none;}
 
-/* Status badges */
-.badge { display:inline-flex; align-items:center; gap:5px; padding:2px 8px; border-radius:12px; font-size:12px; font-weight:600; }
-.badge-pending   { background:var(--s0-bg); color:var(--text2); }
-.badge-partial   { background:#3a2a00; color:var(--yellow); }
-.badge-half      { background:#3a1a00; color:var(--orange); }
-.badge-mostly    { background:#003a3a; color:var(--cyan); }
-.badge-complete  { background:#003a10; color:var(--green); }
-.badge-submitted { background:#2a2a00; color:var(--yellow); }
-.badge-approved  { background:#002a10; color:var(--green); }
-.badge-rejected  { background:#2a0000; color:var(--red); }
+/* Step pill */
+.step-pill{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;border:2px solid transparent;cursor:pointer;transition:all .15s;position:relative;}
+.step-pill:hover{transform:scale(1.15);}
+.step-pill.st-approved{background:#0d2a14;border-color:var(--green);}
+.step-pill.st-submitted{background:#2a2000;border-color:var(--yellow);}
+.step-pill.st-rejected{background:#2a0808;border-color:var(--red);}
+.step-pill.st-pending{background:var(--bg3);border-color:var(--border);}
+.step-pill.st-approved .pill-icon{color:var(--green);}
+.step-pill.st-submitted .pill-icon{color:var(--yellow);}
+.step-pill.st-rejected .pill-icon{color:var(--red);}
+.step-pill.st-pending .pill-icon{color:var(--text3);}
+
+/* LOTO pill special */
+.step-pill.loto-pill.st-approved{background:rgba(63,185,80,.15);border-color:var(--loto-closed);border-width:2.5px;}
+.step-pill.loto-pill.st-pending{background:rgba(255,68,136,.08);border-color:rgba(255,68,136,.4);border-width:2px;}
+.step-pill.loto-pill .pill-icon{font-size:15px;}
 
 /* Cable detail */
-.cable-detail { background:var(--bg1); border-top:1px solid var(--border); flex-shrink:0; overflow-y:auto; max-height:45%; }
-.cd-header { display:flex; align-items:center; gap:10px; padding:12px 16px; border-bottom:1px solid var(--border); background:var(--bg2); }
-.cd-tag { font-size:18px; font-weight:700; color:var(--cyan); font-family:'JetBrains Mono',monospace; }
-.cd-desc { font-size:13px; color:var(--text2); }
-.cd-steps { display:grid; grid-template-columns:repeat(5,1fr); gap:0; }
-.cd-step { padding:10px 12px; border-right:1px solid var(--border); border-bottom:1px solid var(--border); cursor:pointer; transition:background .1s; }
-.cd-step:hover { background:var(--bg3); }
-.cd-step.disabled { opacity:.4; cursor:default; }
-.cd-step-icon { font-size:16px; margin-bottom:4px; }
-.cd-step-label { font-size:11px; color:var(--text2); margin-bottom:6px; line-height:1.3; }
-.cd-step-status { font-size:11px; font-weight:700; }
-.cd-step.st-approved .cd-step-status { color:var(--green); }
-.cd-step.st-submitted .cd-step-status { color:var(--yellow); }
-.cd-step.st-rejected .cd-step-status { color:var(--red); }
-.cd-step.st-pending .cd-step-status { color:var(--text3); }
+.cable-detail{background:var(--bg1);border-top:2px solid var(--border);flex-shrink:0;overflow-y:auto;max-height:44%;}
+.cd-header{display:flex;align-items:center;gap:12px;padding:10px 16px;background:var(--bg2);border-bottom:1px solid var(--border);}
+.cd-tag{font-size:17px;font-weight:700;color:var(--cyan);font-family:'JetBrains Mono',monospace;}
+.cd-steps{display:grid;grid-template-columns:repeat(5,1fr);gap:0;}
+.cd-step{padding:10px 12px;border-right:1px solid var(--border);border-bottom:1px solid var(--border);cursor:pointer;transition:background .1s;}
+.cd-step:hover{background:var(--bg3);}
+.cd-step.disabled{opacity:.35;cursor:default;}
+.cd-step-icon{font-size:15px;margin-bottom:3px;}
+.cd-step-label{font-size:11px;color:var(--text2);margin-bottom:5px;line-height:1.3;}
+.cd-step-status{font-size:11px;font-weight:700;}
+.cd-step.st-approved .cd-step-status{color:var(--green);}
+.cd-step.st-submitted .cd-step-status{color:var(--yellow);}
+.cd-step.st-rejected .cd-step-status{color:var(--red);}
+.cd-step.st-pending .cd-step-status{color:var(--text3);}
+/* LOTO step highlight */
+.cd-step.loto-step{border-top:2px solid rgba(255,68,136,.4);}
+.cd-step.loto-step.st-approved{background:rgba(63,185,80,.06);}
+.cd-step.loto-step.st-pending{background:rgba(255,68,136,.06);}
 
 /* Modals */
-.modal-backdrop { position:fixed; inset:0; background:rgba(0,0,0,.7); z-index:1000; display:flex; align-items:center; justify-content:center; }
-.modal { background:var(--bg2); border:1px solid var(--border); border-radius:12px; padding:24px; min-width:400px; max-width:90vw; max-height:90vh; overflow-y:auto; }
-.modal-title { font-size:18px; font-weight:700; color:var(--text); margin-bottom:20px; }
-.modal-footer { display:flex; gap:8px; justify-content:flex-end; margin-top:20px; padding-top:16px; border-top:1px solid var(--border); }
-.form-row { margin-bottom:14px; }
-.form-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
-.form-grid-3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:14px; }
+.modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:2000;display:flex;align-items:center;justify-content:center;}
+.modal{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:24px;min-width:400px;max-width:90vw;max-height:90vh;overflow-y:auto;}
+.modal-title{font-size:18px;font-weight:700;margin-bottom:20px;}
+.modal-footer{display:flex;gap:8px;justify-content:flex-end;margin-top:20px;padding-top:16px;border-top:1px solid var(--border);}
+.form-row{margin-bottom:14px;}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.form-grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;}
+.eq-type-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px;}
+.eq-type-btn{padding:8px;border:1px solid var(--border);border-radius:6px;cursor:pointer;text-align:center;font-size:12px;font-weight:600;background:var(--bg1);color:var(--text2);transition:all .15s;}
+.eq-type-btn.active{border-color:var(--blue);color:var(--blue);background:var(--bg3);}
 
 /* Step modal */
-.step-modal { min-width:520px; }
-.step-modal .step-header { display:flex; align-items:center; gap:12px; padding:16px; background:var(--bg3); border-radius:8px; margin-bottom:20px; }
-.step-modal .step-icon { font-size:28px; }
-.step-modal .step-name { font-size:16px; font-weight:700; }
-.step-modal .step-cable { font-size:13px; color:var(--text2); }
-.photo-upload { border:2px dashed var(--border); border-radius:8px; padding:20px; text-align:center; cursor:pointer; color:var(--text2); font-size:14px; transition:all .15s; }
-.photo-upload:hover { border-color:var(--blue); color:var(--blue); }
-.photo-list { display:flex; gap:8px; flex-wrap:wrap; margin-top:8px; }
-.photo-thumb { width:80px; height:80px; border-radius:6px; background:var(--bg3); border:1px solid var(--border); display:flex; align-items:center; justify-content:center; font-size:24px; position:relative; cursor:pointer; overflow:hidden; }
-.photo-thumb img { width:100%; height:100%; object-fit:cover; }
-.photo-remove { position:absolute; top:2px; right:2px; background:rgba(0,0,0,.7); color:#fff; border:none; border-radius:50%; width:18px; height:18px; font-size:12px; cursor:pointer; display:flex; align-items:center; justify-content:center; }
-.test-result-input { background:var(--bg1); border:1px solid var(--border); color:var(--text); padding:8px 12px; border-radius:6px; font-family:'JetBrains Mono',monospace; font-size:16px; text-align:center; }
+.step-modal{min-width:520px;}
+.step-header-modal{display:flex;align-items:center;gap:12px;padding:14px;background:var(--bg3);border-radius:8px;margin-bottom:20px;}
+.photo-upload{border:2px dashed var(--border);border-radius:8px;padding:18px;text-align:center;cursor:pointer;color:var(--text2);font-size:14px;}
+.photo-upload:hover{border-color:var(--blue);color:var(--blue);}
+.photo-list{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;}
+.photo-thumb{width:72px;height:72px;border-radius:6px;background:var(--bg3);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:22px;position:relative;overflow:hidden;}
+.photo-thumb img{width:100%;height:100%;object-fit:cover;}
+.photo-remove{position:absolute;top:2px;right:2px;background:rgba(0,0,0,.7);color:#fff;border:none;border-radius:50%;width:16px;height:16px;font-size:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
 
 /* LOTO badge */
-.loto-badge { display:inline-flex; align-items:center; gap:6px; padding:4px 10px; background:#2a0010; border:1px solid #ff4488; border-radius:6px; font-size:12px; color:#ff88aa; font-weight:700; }
+.loto-badge{display:inline-flex;align-items:center;gap:5px;padding:3px 8px;border-radius:6px;font-size:11px;font-weight:700;}
+.loto-badge.locked{background:rgba(255,68,136,.15);border:1px solid var(--loto-open);color:var(--loto-open);}
+.loto-badge.unlocked{background:rgba(63,185,80,.12);border:1px solid var(--loto-closed);color:var(--loto-closed);}
 
 /* Toast */
-.toast-wrap { position:fixed; bottom:24px; right:24px; display:flex; flex-direction:column; gap:8px; z-index:9999; }
-.toast { background:var(--bg3); border:1px solid var(--border); border-radius:8px; padding:12px 16px; font-size:14px; font-weight:600; min-width:260px; animation:slideIn .2s ease; }
-.toast.success { border-color:var(--green); color:var(--green); }
-.toast.error { border-color:var(--red); color:var(--red); }
-.toast.info { border-color:var(--blue); color:var(--blue); }
-@keyframes slideIn { from { transform:translateX(100px); opacity:0; } to { transform:none; opacity:1; } }
+.toast-wrap{position:fixed;bottom:20px;right:20px;display:flex;flex-direction:column;gap:8px;z-index:9999;}
+.toast{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:10px 14px;font-size:14px;font-weight:600;animation:slideIn .2s;}
+.toast.success{border-color:var(--green);color:var(--green);}
+.toast.error{border-color:var(--red);color:var(--red);}
+.toast.info{border-color:var(--blue);color:var(--blue);}
+@keyframes slideIn{from{transform:translateX(80px);opacity:0}to{transform:none;opacity:1}}
 
-/* Drag zone */
-.drag-over { border-color:var(--blue) !important; background:var(--bg3) !important; }
-
-/* Add equipment modal side labels */
-.eq-type-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:16px; }
-.eq-type-btn { padding:8px; border:1px solid var(--border); border-radius:6px; cursor:pointer; text-align:center; font-size:12px; font-weight:600; background:var(--bg1); color:var(--text2); transition:all .15s; }
-.eq-type-btn:hover, .eq-type-btn.active { border-color:var(--blue); color:var(--blue); background:var(--bg3); }
-
-/* Node tooltip */
-.node-tooltip { position:absolute; background:var(--bg2); border:1px solid var(--border); border-radius:6px; padding:8px 12px; font-size:12px; pointer-events:none; z-index:100; }
+.drag-over{border-color:var(--blue)!important;background:var(--bg3)!important;}
 </style>
 </head>
 <body>
 <div id="root"></div>
 <script type="text/babel">
-const { useState, useEffect, useRef, useCallback, useMemo } = React;
+const {useState,useEffect,useRef,useCallback,useMemo}=React;
 
-// ─── Constants ─────────────────────────────────────────────────────────────
-const EQ_TYPES = {
-  UTILITY: {label:'Utility / Grid',   icon:'⚡', color:'#1a0a2e', border:'#a855f7'},
-  TX:      {label:'Transformer',      icon:'↯',  color:'#0a1a2e', border:'#3b82f6'},
-  GEN:     {label:'Generator',        icon:'⚙',  color:'#1a1000', border:'#f59e0b'},
-  MV_SW:   {label:'MV Switchgear',    icon:'⊟',  color:'#0a2a1a', border:'#22c55e'},
-  LV_SW:   {label:'LV Switchgear',    icon:'⊠',  color:'#0a1a0a', border:'#86efac'},
-  ATS:     {label:'ATS',              icon:'⇌',  color:'#1a1a00', border:'#eab308'},
-  UPS:     {label:'UPS',              icon:'🔋', color:'#001a10', border:'#4ade80'},
-  PDU:     {label:'PDU',              icon:'⊞',  color:'#1a0a00', border:'#fb923c'},
-  MCC:     {label:'MCC',              icon:'⊡',  color:'#001020', border:'#60a5fa'},
-  PQM:     {label:'PQM / Meter',      icon:'◈',  color:'#1a001a', border:'#c084fc'},
-  BUSDUCT: {label:'Bus Duct',         icon:'═',  color:'#0a0a1a', border:'#94a3b8'},
-  LOAD:    {label:'IT Load / Rack',   icon:'▦',  color:'#001a1a', border:'#22d3ee'},
-  PANEL:   {label:'Panel Board',      icon:'▤',  color:'#0a1010', border:'#6ee7b7'},
-  OTHER:   {label:'Other Equipment',  icon:'◉',  color:'#1a1a1a', border:'#94a3b8'},
+// ─── Constants ────────────────────────────────────────────────────────────────
+const EQ_TYPES={
+  UTILITY:{label:'Utility',icon:'⚡',color:'#1a0a2e',border:'#a855f7'},
+  TX:{label:'Transformer',icon:'↯',color:'#0a1a2e',border:'#3b82f6'},
+  GEN:{label:'Generator',icon:'⚙',color:'#1a1000',border:'#f59e0b'},
+  MV_SW:{label:'MV Switchgear',icon:'⊟',color:'#0a2a1a',border:'#22c55e'},
+  LV_SW:{label:'LV Switchgear',icon:'⊠',color:'#0a1a0a',border:'#86efac'},
+  ATS:{label:'ATS',icon:'⇌',color:'#1a1a00',border:'#eab308'},
+  UPS:{label:'UPS',icon:'🔋',color:'#001a10',border:'#4ade80'},
+  PDU:{label:'PDU',icon:'⊞',color:'#1a0a00',border:'#fb923c'},
+  MCC:{label:'MCC',icon:'⊡',color:'#001020',border:'#60a5fa'},
+  PQM:{label:'Meter',icon:'◈',color:'#1a001a',border:'#c084fc'},
+  BUSDUCT:{label:'Bus Duct',icon:'═',color:'#0a0a1a',border:'#94a3b8'},
+  LOAD:{label:'IT Load',icon:'▦',color:'#001a1a',border:'#22d3ee'},
+  PANEL:{label:'Panel',icon:'▤',color:'#0a1010',border:'#6ee7b7'},
+  OTHER:{label:'Other',icon:'◉',color:'#1a1a1a',border:'#94a3b8'},
 };
 
-const STEPS = [
-  {id:'pulled',     label:'Cable Pulled & Tagged',  icon:'📦', loto:false, testKey:null},
-  {id:'src_term',   label:'Source Terminated',      icon:'🔧', loto:false, testKey:null},
-  {id:'src_torque', label:'Source Torqued',         icon:'🔩', loto:false, testKey:null},
-  {id:'dst_term',   label:'Dest Terminated',        icon:'🔧', loto:false, testKey:null},
-  {id:'dst_torque', label:'Dest Torqued',           icon:'🔩', loto:false, testKey:null},
-  {id:'megger',     label:'Megger / IR Test',       icon:'⚡', loto:false, testKey:'megger_result', unit:'MΩ'},
-  {id:'continuity', label:'Continuity Test',        icon:'🔄', loto:false, testKey:'continuity_result'},
-  {id:'hipot',      label:'Hi-Pot Test',            icon:'⚡', loto:false, testKey:'hipot_result', optional:true},
-  {id:'loto',       label:'LOTO Applied',           icon:'🔒', loto:true,  testKey:null},
-  {id:'energized',  label:'Energized',              icon:'✅', loto:false, testKey:null, final:true},
+const STEPS=[
+  {id:'pulled',    label:'Cable Pulled',      short:'PULL', icon:'📦',loto:false,testKey:null},
+  {id:'src_term',  label:'Src Terminated',    short:'SRC-T',icon:'🔧',loto:false,testKey:null},
+  {id:'src_torque',label:'Src Torqued',       short:'SRC-Q',icon:'🔩',loto:false,testKey:null},
+  {id:'dst_term',  label:'Dst Terminated',    short:'DST-T',icon:'🔧',loto:false,testKey:null},
+  {id:'dst_torque',label:'Dst Torqued',       short:'DST-Q',icon:'🔩',loto:false,testKey:null},
+  {id:'megger',    label:'Megger/IR',         short:'MEGG', icon:'⚡',loto:false,testKey:'megger_result',unit:'MΩ'},
+  {id:'continuity',label:'Continuity',        short:'CONT', icon:'🔄',loto:false,testKey:'continuity_result'},
+  {id:'hipot',     label:'Hi-Pot',            short:'HPOT', icon:'⚡',loto:false,testKey:'hipot_result',optional:true},
+  {id:'loto',      label:'LOTO',              short:'LOTO', icon:'🔒',loto:true, testKey:null},
+  {id:'energized', label:'Energized',         short:'ENRG', icon:'✅',loto:false,testKey:null,final:true},
 ];
 
-const STEP_STATUS = ['pending','submitted','approved','rejected'];
-const stepColor = s => s==='approved'?'#3fb950':s==='submitted'?'#d29922':s==='rejected'?'#f85149':'#4a5568';
+const LS_KEY='wireflow_v2';
+const uid=()=>Math.random().toString(36).slice(2,9);
+const stepColor=s=>s==='approved'?'#3fb950':s==='submitted'?'#d29922':s==='rejected'?'#f85149':'#4a5568';
+const pillIcon=s=>s==='approved'?'✓':s==='submitted'?'⏳':s==='rejected'?'✗':'·';
 
-// ─── Utils ──────────────────────────────────────────────────────────────────
-const uid = () => Math.random().toString(36).slice(2,9);
-const LS_KEY = 'wireflow_v1';
+function loadData(){try{return JSON.parse(localStorage.getItem(LS_KEY))||{projects:[]};}catch{return{projects:[]};}}
+function saveData(d){try{localStorage.setItem(LS_KEY,JSON.stringify(d));}catch{}}
 
-function loadData() {
-  try { return JSON.parse(localStorage.getItem(LS_KEY)) || { projects:[] }; } catch { return { projects:[] }; }
-}
-function saveData(data) {
-  try { localStorage.setItem(LS_KEY, JSON.stringify(data)); } catch {}
-}
-
-function cableProgress(cable) {
-  const total = STEPS.length;
-  const done = STEPS.filter(s => cable.steps?.[s.id]?.status === 'approved').length;
-  return { done, total, pct: Math.round((done/total)*100) };
+function cableProgress(cable){
+  const done=STEPS.filter(s=>cable.steps?.[s.id]?.status==='approved').length;
+  return{done,total:STEPS.length,pct:Math.round((done/STEPS.length)*100)};
 }
 
-function autoLayout(equipment) {
-  const byId = {};
-  equipment.forEach(e => { byId[e.id] = e; });
-  const roots = equipment.filter(e => !e.parentId || !byId[e.parentId]);
-  const childMap = {};
-  equipment.forEach(e => {
-    if (e.parentId && byId[e.parentId]) {
-      if (!childMap[e.parentId]) childMap[e.parentId] = [];
+function autoLayout(equipment){
+  const byId={};equipment.forEach(e=>{byId[e.id]=e;});
+  const childMap={};
+  equipment.forEach(e=>{
+    if(e.parentId&&byId[e.parentId]){
+      if(!childMap[e.parentId])childMap[e.parentId]=[];
       childMap[e.parentId].push(e.id);
     }
   });
-  const pos = {};
-  const HGAP = 180, VGAP = 130;
-  function getWidth(id) {
-    const kids = childMap[id] || [];
-    if (!kids.length) return 1;
-    return kids.reduce((a,k) => a + getWidth(k), 0);
+  const roots=equipment.filter(e=>!e.parentId||!byId[e.parentId]);
+  const pos={};
+  const HGAP=180,VGAP=130;
+  function getW(id){const k=childMap[id]||[];return k.length?k.reduce((a,c)=>a+getW(c),0):1;}
+  function layout(id,depth,xOff){
+    const w=getW(id);
+    pos[id]={x:(xOff+w/2)*HGAP,y:depth*VGAP+80};
+    let cx=xOff;(childMap[id]||[]).forEach(k=>{layout(k,depth+1,cx);cx+=getW(k);});
   }
-  function layout(id, depth, xOffset) {
-    const w = getWidth(id);
-    pos[id] = { x: (xOffset + w/2) * HGAP, y: depth * VGAP + 80 };
-    const kids = childMap[id] || [];
-    let cx = xOffset;
-    kids.forEach(kid => {
-      const kw = getWidth(kid);
-      layout(kid, depth+1, cx);
-      cx += kw;
-    });
-  }
-  let xOff = 0;
-  roots.forEach(r => { layout(r.id, 0, xOff); xOff += getWidth(r.id); });
+  let xOff=0;
+  roots.forEach(r=>{layout(r.id,0,xOff);xOff+=getW(r.id);});
   return pos;
 }
 
-// ─── Toast ──────────────────────────────────────────────────────────────────
-function useToast() {
-  const [toasts, setToasts] = useState([]);
-  const toast = useCallback((msg, type='info') => {
-    const id = uid();
-    setToasts(t => [...t, {id, msg, type}]);
-    setTimeout(() => setToasts(t => t.filter(x=>x.id!==id)), 3000);
-  }, []);
-  return { toasts, toast };
+// ─── Toast ────────────────────────────────────────────────────────────────────
+function useToast(){
+  const[toasts,setToasts]=useState([]);
+  const toast=useCallback((msg,type='info')=>{
+    const id=uid();
+    setToasts(t=>[...t,{id,msg,type}]);
+    setTimeout(()=>setToasts(t=>t.filter(x=>x.id!==id)),3000);
+  },[]);
+  return{toasts,toast};
 }
+function ToastList({toasts}){return<div className="toast-wrap">{toasts.map(t=><div key={t.id} className={`toast ${t.type}`}>{t.msg}</div>)}</div>;}
 
-function ToastList({ toasts }) {
-  return <div className="toast-wrap">{toasts.map(t => <div key={t.id} className={`toast ${t.type}`}>{t.msg}</div>)}</div>;
-}
-
-// ─── Excel helpers ───────────────────────────────────────────────────────────
-function downloadTemplate() {
-  const wb = XLSX.utils.book_new();
-  const ins = [
-    ['WireFlow — Import Template'],[''],
-    ['EQUIPMENT sheet columns:'],
-    ['ID','Tag','Type','Label','Zone/Room','Parent ID','X','Y'],
+// ─── Excel helpers ─────────────────────────────────────────────────────────────
+function downloadTemplate(){
+  const wb=XLSX.utils.book_new();
+  const ins=[['WireFlow v2 Import Template'],[''],
+    ['EQUIPMENT columns:'],['ID','Tag','Type','Label','Zone/Room','Parent ID','X','Y'],
     ['eq1','TX-01','TX','Main Transformer','Switchroom','','',''],
-    ['eq2','MDB-01','LV_SW','Main Distribution Board','Switchroom','eq1','',''],
     [''],['Valid types: '+Object.keys(EQ_TYPES).join(', ')],[''],
-    ['CABLES sheet columns:'],
-    ['Cable Tag','Circuit #','Cable Type','Voltage','Conductor Count','Conduit ID','From ID','To ID','Zone/Room','Sub Trade','Notes'],
+    ['CABLES columns:'],['Cable Tag','Circuit #','Cable Type','Voltage','Conductor Count','Conduit ID','From ID','To ID','Zone/Room','Sub Trade','Notes'],
     ['C-001','CB-001','XLPE 4/C #2 AWG','600V','4','CDT-01','eq1','eq2','Switchroom','Alpha Electric',''],
   ];
-  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(ins), 'Instructions');
-  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([
-    ['ID','Tag','Type','Label','Zone/Room','Parent ID','X','Y'],
-  ]), 'Equipment');
-  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([
-    ['Cable Tag','Circuit #','Cable Type','Voltage','Conductor Count','Conduit ID','From ID','To ID','Zone/Room','Sub Trade','Notes'],
-  ]), 'Cables');
-  XLSX.writeFile(wb, 'wireflow_template.xlsx');
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(ins),'Instructions');
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet([['ID','Tag','Type','Label','Zone/Room','Parent ID','X','Y']]),'Equipment');
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet([['Cable Tag','Circuit #','Cable Type','Voltage','Conductor Count','Conduit ID','From ID','To ID','Zone/Room','Sub Trade','Notes']]),'Cables');
+  XLSX.writeFile(wb,'wireflow_template.xlsx');
 }
 
-function exportProject(project) {
-  const wb = XLSX.utils.book_new();
-  // Equipment
-  const eqRows = [['ID','Tag','Type','Label','Zone/Room','Parent ID','X','Y'],
-    ...(project.equipment||[]).map(e => [e.id,e.tag,e.type,e.label,e.zone||'',e.parentId||'',e.x||'',e.y||''])
-  ];
-  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(eqRows), 'Equipment');
-  // Cables
-  const cableRows = [['Cable Tag','Circuit #','Cable Type','Voltage','Conductor Count','Conduit ID','From ID','To ID','Zone/Room','Sub Trade','Notes'],
-    ...(project.cables||[]).map(c => [c.tag,c.circuit||'',c.cableType||'',c.voltage||'',c.conductors||'',c.conduit||'',c.fromId,c.toId,c.zone||'',c.subTrade||'',c.notes||''])
-  ];
-  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(cableRows), 'Cables');
-  // Progress
-  const progRows = [['Cable Tag',...STEPS.map(s=>s.label),'Megger (MΩ)','Continuity','Hi-Pot','LOTO Lock#','LOTO Worker','% Complete'],
-    ...(project.cables||[]).map(c => {
-      const steps = c.steps||{};
-      const row = [c.tag, ...STEPS.map(s => steps[s.id]?.status||'pending')];
-      row.push(steps.megger?.megger_result||'', steps.continuity?.continuity_result||'', steps.hipot?.hipot_result||'');
-      row.push(steps.loto?.lockNumber||'', steps.loto?.workerName||'');
-      row.push(cableProgress(c).pct+'%');
-      return row;
-    })
-  ];
-  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(progRows), 'Progress');
-  XLSX.writeFile(wb, `${project.name.replace(/\s+/g,'_')}_wireflow.xlsx`);
+function exportProject(project){
+  const wb=XLSX.utils.book_new();
+  const eqR=[['ID','Tag','Type','Label','Zone/Room','Parent ID','X','Y'],...(project.equipment||[]).map(e=>[e.id,e.tag,e.type,e.label,e.zone||'',e.parentId||'',e.x||'',e.y||''])];
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(eqR),'Equipment');
+  const cbR=[['Cable Tag','Circuit #','Cable Type','Voltage','Conductor Count','Conduit ID','From ID','To ID','Zone/Room','Sub Trade','Notes'],...(project.cables||[]).map(c=>[c.tag,c.circuit||'',c.cableType||'',c.voltage||'',c.conductors||'',c.conduit||'',c.fromId,c.toId,c.zone||'',c.subTrade||'',c.notes||''])];
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(cbR),'Cables');
+  const prR=[['Cable Tag',...STEPS.map(s=>s.label),'Megger','Continuity','Hi-Pot','LOTO Lock#','LOTO Worker','%'],...(project.cables||[]).map(c=>{
+    const st=c.steps||{};const row=[c.tag,...STEPS.map(s=>st[s.id]?.status||'pending')];
+    row.push(st.megger?.megger_result||'',st.continuity?.continuity_result||'',st.hipot?.hipot_result||'',st.loto?.lockNumber||'',st.loto?.workerName||'',cableProgress(c).pct+'%');
+    return row;
+  })];
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(prR),'Progress');
+  XLSX.writeFile(wb,`${project.name.replace(/\s+/g,'_')}_wireflow.xlsx`);
 }
 
-function parseExcel(buffer) {
-  const wb = XLSX.read(buffer, {type:'array'});
-  const result = { equipment:[], cables:[] };
-  const eqSheet = wb.Sheets['Equipment'];
-  if (eqSheet) {
-    const rows = XLSX.utils.sheet_to_json(eqSheet, {header:1}).slice(1).filter(r=>r[0]);
-    result.equipment = rows.map(r => ({
-      id: String(r[0]||uid()), tag:String(r[1]||''), type:String(r[2]||'OTHER'),
-      label:String(r[3]||''), zone:String(r[4]||''), parentId:String(r[5]||''),
-      x: r[6]?Number(r[6]):null, y:r[7]?Number(r[7]):null, steps:{}
-    }));
-  }
-  const cSheet = wb.Sheets['Cables'];
-  if (cSheet) {
-    const rows = XLSX.utils.sheet_to_json(cSheet, {header:1}).slice(1).filter(r=>r[0]);
-    result.cables = rows.map(r => ({
-      id:uid(), tag:String(r[0]||''), circuit:String(r[1]||''), cableType:String(r[2]||''),
-      voltage:String(r[3]||''), conductors:String(r[4]||''), conduit:String(r[5]||''),
-      fromId:String(r[6]||''), toId:String(r[7]||''), zone:String(r[8]||''),
-      subTrade:String(r[9]||''), notes:String(r[10]||''), steps:{}
-    }));
-  }
-  const progSheet = wb.Sheets['Progress'];
-  if (progSheet && result.cables.length) {
-    const rows = XLSX.utils.sheet_to_json(progSheet, {header:1}).slice(1);
-    rows.forEach(r => {
-      const cable = result.cables.find(c => c.tag === String(r[0]||''));
-      if (!cable) return;
-      STEPS.forEach((s,i) => {
-        const val = String(r[i+1]||'pending');
-        if (!cable.steps[s.id]) cable.steps[s.id] = {};
-        cable.steps[s.id].status = STEP_STATUS.includes(val)?val:'pending';
-      });
-      if (cable.steps.megger)     cable.steps.megger.megger_result = String(r[STEPS.length+1]||'');
-      if (cable.steps.continuity) cable.steps.continuity.continuity_result = String(r[STEPS.length+2]||'');
-      if (cable.steps.hipot)      cable.steps.hipot.hipot_result = String(r[STEPS.length+3]||'');
-      if (cable.steps.loto) {
-        cable.steps.loto.lockNumber = String(r[STEPS.length+4]||'');
-        cable.steps.loto.workerName = String(r[STEPS.length+5]||'');
-      }
-    });
-  }
+function parseExcel(buffer){
+  const wb=XLSX.read(buffer,{type:'array'});
+  const result={equipment:[],cables:[]};
+  const eqS=wb.Sheets['Equipment'];
+  if(eqS){const rows=XLSX.utils.sheet_to_json(eqS,{header:1}).slice(1).filter(r=>r[0]);result.equipment=rows.map(r=>({id:String(r[0]||uid()),tag:String(r[1]||''),type:String(r[2]||'OTHER'),label:String(r[3]||''),zone:String(r[4]||''),parentId:String(r[5]||''),x:r[6]?Number(r[6]):null,y:r[7]?Number(r[7]):null,steps:{}}));}
+  const cS=wb.Sheets['Cables'];
+  if(cS){const rows=XLSX.utils.sheet_to_json(cS,{header:1}).slice(1).filter(r=>r[0]);result.cables=rows.map(r=>({id:uid(),tag:String(r[0]||''),circuit:String(r[1]||''),cableType:String(r[2]||''),voltage:String(r[3]||''),conductors:String(r[4]||''),conduit:String(r[5]||''),fromId:String(r[6]||''),toId:String(r[7]||''),zone:String(r[8]||''),subTrade:String(r[9]||''),notes:String(r[10]||''),steps:{}}));}
+  const pS=wb.Sheets['Progress'];
+  if(pS&&result.cables.length){const rows=XLSX.utils.sheet_to_json(pS,{header:1}).slice(1);rows.forEach(r=>{const cable=result.cables.find(c=>c.tag===String(r[0]||''));if(!cable)return;STEPS.forEach((s,i)=>{const v=String(r[i+1]||'pending');if(!cable.steps[s.id])cable.steps[s.id]={};cable.steps[s.id].status=['pending','submitted','approved','rejected'].includes(v)?v:'pending';});if(cable.steps.megger)cable.steps.megger.megger_result=String(r[STEPS.length+1]||'');if(cable.steps.continuity)cable.steps.continuity.continuity_result=String(r[STEPS.length+2]||'');if(cable.steps.hipot)cable.steps.hipot.hipot_result=String(r[STEPS.length+3]||'');if(cable.steps.loto){cable.steps.loto.lockNumber=String(r[STEPS.length+4]||'');cable.steps.loto.workerName=String(r[STEPS.length+5]||'');}});}
   return result;
 }
 
-// ─── One-Line Diagram ────────────────────────────────────────────────────────
-function OneLineCanvas({ project, selectedCable, onSelectCable, viewMode }) {
-  const svgRef = useRef(null);
-  const [vb, setVb] = useState({x:0,y:0,scale:1});
-  const [dragging, setDragging] = useState(null); // null | {type:'pan',sx,sy,ox,oy} | {type:'node',id,sx,sy,ox,oy}
-  const [positions, setPositions] = useState({});
-  const [tooltip, setTooltip] = useState(null);
+// ─── Context Menu ──────────────────────────────────────────────────────────────
+function ContextMenu({x,y,items,onClose}){
+  useEffect(()=>{const h=()=>onClose();document.addEventListener('mousedown',h);return()=>document.removeEventListener('mousedown',h);},[onClose]);
+  return(
+    <div className="ctx-menu" style={{left:x,top:y}} onMouseDown={e=>e.stopPropagation()}>
+      {items.map((item,i)=>item===null?<div key={i} className="ctx-sep"/>:
+        <div key={i} className={`ctx-item ${item.danger?'danger':''}`} onClick={()=>{item.action();onClose();}}>
+          <span>{item.icon}</span>{item.label}
+        </div>
+      )}
+    </div>
+  );
+}
 
-  const equipment = project.equipment||[];
-  const cables = project.cables||[];
+// ─── One-Line Canvas ───────────────────────────────────────────────────────────
+function OneLineCanvas({project,onUpdate,toast}){
+  const svgRef=useRef(null);
+  const[vb,setVb]=useState({x:0,y:0,scale:1});
+  const[dragging,setDragging]=useState(null);
+  const[positions,setPositions]=useState({});
+  const[ctxMenu,setCtxMenu]=useState(null);
+  const[modal,setModal]=useState(null); // 'eq'|'cable'|{type:'cable-from',fromId}
+  const NODE_W=120,NODE_H=56;
 
-  // Compute or restore positions
-  useEffect(() => {
-    const auto = autoLayout(equipment);
-    const pos = {};
-    equipment.forEach(e => {
-      if (e.x != null && e.y != null) pos[e.id] = {x:e.x, y:e.y};
-      else pos[e.id] = auto[e.id] || {x:100, y:100};
+  const equipment=project.equipment||[];
+  const cables=project.cables||[];
+
+  useEffect(()=>{
+    const auto=autoLayout(equipment);
+    const pos={};
+    equipment.forEach(e=>{
+      pos[e.id]=e.x!=null&&e.y!=null?{x:e.x,y:e.y}:(auto[e.id]||{x:100,y:100});
     });
     setPositions(pos);
-  }, [equipment]);
+  },[equipment.length]);
 
-  // Cable bundles: group cables by (fromId,toId) pair (order-normalized)
-  const bundles = useMemo(() => {
-    const map = {};
-    cables.forEach(c => {
-      const key = [c.fromId,c.toId].sort().join('|');
-      if (!map[key]) map[key] = { fromId:c.fromId, toId:c.toId, cables:[] };
+  const bundles=useMemo(()=>{
+    const map={};
+    cables.forEach(c=>{
+      const key=[c.fromId,c.toId].sort().join('|');
+      if(!map[key])map[key]={fromId:c.fromId,toId:c.toId,cables:[]};
       map[key].cables.push(c);
     });
     return Object.values(map);
-  }, [cables]);
+  },[cables]);
 
-  function bundleColor(bundleCables) {
-    const progs = bundleCables.map(c => cableProgress(c).pct);
-    const avg = progs.reduce((a,b)=>a+b,0)/progs.length;
-    if (avg === 0) return '#4a5568';
-    if (avg < 30) return '#d29922';
-    if (avg < 60) return '#f0883e';
-    if (avg < 100) return '#39d0d8';
-    return '#3fb950';
+  function bundleColor(bc){
+    const avg=bc.reduce((a,c)=>a+cableProgress(c).pct,0)/bc.length;
+    if(avg===0)return'#4a5568';if(avg<30)return'#d29922';if(avg<60)return'#f0883e';if(avg<100)return'#39d0d8';return'#3fb950';
   }
 
-  const NODE_W = 120, NODE_H = 56;
-
-  function svgPoint(e) {
-    const svg = svgRef.current;
-    if (!svg) return {x:0,y:0};
-    const rect = svg.getBoundingClientRect();
-    return {
-      x: (e.clientX - rect.left) / vb.scale + vb.x,
-      y: (e.clientY - rect.top)  / vb.scale + vb.y,
-    };
+  function svgPt(e){
+    const r=svgRef.current?.getBoundingClientRect();if(!r)return{x:0,y:0};
+    return{x:(e.clientX-r.left)/vb.scale+vb.x,y:(e.clientY-r.top)/vb.scale+vb.y};
   }
 
-  function onWheel(e) {
+  function hitNode(pt){
+    for(const eq of equipment){
+      const p=positions[eq.id];if(!p)continue;
+      if(pt.x>=p.x&&pt.x<=p.x+NODE_W&&pt.y>=p.y&&pt.y<=p.y+NODE_H)return eq;
+    }return null;
+  }
+
+  function onWheel(e){
     e.preventDefault();
-    const rect = svgRef.current.getBoundingClientRect();
-    const mouseX = e.clientX - rect.left;
-    const mouseY = e.clientY - rect.top;
-    const factor = e.deltaY > 0 ? 0.9 : 1.1;
-    setVb(v => {
-      const newScale = Math.min(4, Math.max(0.1, v.scale * factor));
-      const wx = mouseX / v.scale + v.x;
-      const wy = mouseY / v.scale + v.y;
-      return { scale:newScale, x: wx - mouseX/newScale, y: wy - mouseY/newScale };
-    });
+    const r=svgRef.current.getBoundingClientRect();
+    const mx=e.clientX-r.left,my=e.clientY-r.top;
+    const f=e.deltaY>0?0.88:1.13;
+    setVb(v=>{const ns=Math.min(4,Math.max(.08,v.scale*f));return{scale:ns,x:(mx/v.scale+v.x)-mx/ns,y:(my/v.scale+v.y)-my/ns};});
   }
 
-  function onMouseDown(e) {
-    if (e.button !== 0) return;
-    const pt = svgPoint(e);
-    // Check if clicking a node
-    for (const eq of equipment) {
-      const pos = positions[eq.id];
-      if (!pos) continue;
-      if (pt.x >= pos.x && pt.x <= pos.x+NODE_W && pt.y >= pos.y && pt.y <= pos.y+NODE_H) {
-        setDragging({type:'node', id:eq.id, sx:e.clientX, sy:e.clientY, ox:pos.x, oy:pos.y});
-        return;
-      }
+  function onMouseDown(e){
+    if(e.button!==0)return;
+    const pt=svgPt(e);
+    const eq=hitNode(pt);
+    if(eq){setDragging({type:'node',id:eq.id,sx:e.clientX,sy:e.clientY,ox:positions[eq.id].x,oy:positions[eq.id].y});}
+    else{setDragging({type:'pan',sx:e.clientX,sy:e.clientY,ox:vb.x,oy:vb.y});}
+  }
+  function onMouseMove(e){
+    if(!dragging)return;
+    const dx=e.clientX-dragging.sx,dy=e.clientY-dragging.sy;
+    if(dragging.type==='pan')setVb(v=>({...v,x:dragging.ox-dx/v.scale,y:dragging.oy-dy/v.scale}));
+    else setPositions(p=>({...p,[dragging.id]:{x:dragging.ox+dx/vb.scale,y:dragging.oy+dy/vb.scale}}));
+  }
+  function onMouseUp(){setDragging(null);}
+
+  function onContextMenu(e){
+    e.preventDefault();
+    const pt=svgPt(e);
+    const eq=hitNode(pt);
+    const items=eq?[
+      {icon:'🔌',label:'Add cable from '+eq.tag,action:()=>setModal({type:'cable-from',fromId:eq.id})},
+      {icon:'✏️',label:'Edit equipment',action:()=>setModal({type:'edit-eq',eq})},
+      null,
+      {icon:'🗑',label:'Delete '+eq.tag,danger:true,action:()=>{
+        const newEq=equipment.filter(x=>x.id!==eq.id);
+        const newCb=cables.filter(c=>c.fromId!==eq.id&&c.toId!==eq.id);
+        onUpdate({...project,equipment:newEq,cables:newCb});
+        toast('Deleted '+eq.tag,'info');
+      }},
+    ]:[
+      {icon:'➕',label:'Add equipment here',action:()=>setModal({type:'add-eq',x:pt.x,y:pt.y})},
+      {icon:'🔌',label:'Add cable',action:()=>setModal({type:'cable-from',fromId:''})},
+      null,
+      {icon:'⊡',label:'Fit all to view',action:fitAll},
+    ];
+    setCtxMenu({x:e.clientX,y:e.clientY,items});
+  }
+
+  function fitAll(){
+    const pts=Object.values(positions);if(!pts.length)return;
+    const xs=pts.map(p=>p.x),ys=pts.map(p=>p.y);
+    const minX=Math.min(...xs)-20,minY=Math.min(...ys)-20,maxX=Math.max(...xs)+NODE_W+20,maxY=Math.max(...ys)+NODE_H+20;
+    const r=svgRef.current?.getBoundingClientRect();if(!r)return;
+    const scale=Math.min(r.width/(maxX-minX),r.height/(maxY-minY),2);
+    setVb({x:minX,y:minY,scale});
+  }
+
+  // Persist dragged positions back to project
+  function onMouseUpFinal(e){
+    if(dragging?.type==='node'){
+      const p=positions[dragging.id];
+      const newEq=equipment.map(eq=>eq.id===dragging.id?{...eq,x:p.x,y:p.y}:eq);
+      onUpdate({...project,equipment:newEq});
     }
-    setDragging({type:'pan', sx:e.clientX, sy:e.clientY, ox:vb.x, oy:vb.y});
+    setDragging(null);
   }
 
-  function onMouseMove(e) {
-    if (!dragging) return;
-    const dx = e.clientX - dragging.sx;
-    const dy = e.clientY - dragging.sy;
-    if (dragging.type === 'pan') {
-      setVb(v => ({...v, x: dragging.ox - dx/v.scale, y: dragging.oy - dy/v.scale}));
-    } else {
-      setPositions(p => ({...p, [dragging.id]: {x: dragging.ox + dx/vb.scale, y: dragging.oy + dy/vb.scale}}));
-    }
+  const r=svgRef.current;const W=r?.clientWidth||800,H=r?.clientHeight||600;
+  const viewBox=`${vb.x} ${vb.y} ${W/vb.scale} ${H/vb.scale}`;
+
+  function addEquipment(eq){
+    onUpdate({...project,equipment:[...equipment,eq]});
+    setModal(null);toast('Added '+eq.tag,'success');
+  }
+  function addCable(cable){
+    onUpdate({...project,cables:[...cables,cable]});
+    setModal(null);toast('Cable added: '+cable.tag,'success');
   }
 
-  function onMouseUp() { setDragging(null); }
-
-  function fitAll() {
-    const pts = Object.values(positions);
-    if (!pts.length) return;
-    const xs = pts.map(p=>p.x); const ys = pts.map(p=>p.y);
-    const minX=Math.min(...xs)-20, minY=Math.min(...ys)-20;
-    const maxX=Math.max(...xs)+NODE_W+20, maxY=Math.max(...ys)+NODE_H+20;
-    const svg = svgRef.current;
-    if (!svg) return;
-    const rect = svg.getBoundingClientRect();
-    const scaleX = rect.width/(maxX-minX), scaleY = rect.height/(maxY-minY);
-    const scale = Math.min(scaleX, scaleY, 2);
-    setVb({x:minX, y:minY, scale});
-  }
-
-  const svg = svgRef.current;
-  const W = svg?.clientWidth||800, H = svg?.clientHeight||600;
-  const viewBox = `${vb.x} ${vb.y} ${W/vb.scale} ${H/vb.scale}`;
-
-  return (
+  return(
     <div className="canvas-wrap" style={{flex:1}}>
-      <svg ref={svgRef} className="one-line" viewBox={viewBox}
-        onWheel={onWheel} onMouseDown={onMouseDown} onMouseMove={onMouseMove} onMouseUp={onMouseUp}
-        onMouseLeave={onMouseUp}>
+      <svg ref={svgRef} className={`one-line${dragging?.type==='pan'?' panning':''}`} viewBox={viewBox}
+        onWheel={onWheel} onMouseDown={onMouseDown} onMouseMove={onMouseMove}
+        onMouseUp={onMouseUpFinal} onMouseLeave={onMouseUpFinal} onContextMenu={onContextMenu}>
         <defs>
-          <marker id="arr" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
-            <path d="M0,0 L0,6 L8,3 z" fill="#4a5568"/>
-          </marker>
-          <marker id="arr-green" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
-            <path d="M0,0 L0,6 L8,3 z" fill="#3fb950"/>
-          </marker>
+          <marker id="arr" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto"><path d="M0,0L0,6L7,3z" fill="#4a5568"/></marker>
+          <marker id="arr-g" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto"><path d="M0,0L0,6L7,3z" fill="#3fb950"/></marker>
         </defs>
-
-        {/* Cables / bundles */}
-        {bundles.map((bundle, i) => {
-          const fp = positions[bundle.fromId];
-          const tp = positions[bundle.toId];
-          if (!fp || !tp) return null;
-          const x1 = fp.x + NODE_W/2, y1 = fp.y + NODE_H;
-          const x2 = tp.x + NODE_W/2, y2 = tp.y;
-          const color = bundleColor(bundle.cables);
-          const mx = (x1+x2)/2, my = (y1+y2)/2;
-          const isSelected = bundle.cables.some(c => c.id === selectedCable?.id);
-          return (
-            <g key={i} style={{cursor:'pointer'}} onClick={() => onSelectCable(bundle.cables[0])}>
-              <line x1={x1} y1={y1} x2={x2} y2={y2}
-                stroke={isSelected?'#58a6ff':color} strokeWidth={isSelected?3:2}
-                strokeDasharray={bundle.cables[0].steps?.pulled?.status==='approved'?'none':'6,4'}
-                markerEnd={`url(#${color==='#3fb950'?'arr-green':'arr'})`}/>
-              {bundle.cables.length > 1 && (
-                <g>
-                  <circle cx={mx} cy={my} r={10} fill={color} opacity={.9}/>
-                  <text x={mx} y={my+4} textAnchor="middle" fontSize="9" fill="#fff" fontWeight="700">{bundle.cables.length}</text>
-                </g>
-              )}
-              {bundle.cables.length === 1 && (
-                <text x={mx+8} y={my-4} fontSize="9" fill={color} fontFamily="JetBrains Mono,monospace">{bundle.cables[0].tag}</text>
+        {bundles.map((b,i)=>{
+          const fp=positions[b.fromId],tp=positions[b.toId];if(!fp||!tp)return null;
+          const x1=fp.x+NODE_W/2,y1=fp.y+NODE_H,x2=tp.x+NODE_W/2,y2=tp.y;
+          const col=bundleColor(b.cables);const mx=(x1+x2)/2,my=(y1+y2)/2;
+          return(
+            <g key={i}>
+              <line x1={x1} y1={y1} x2={x2} y2={y2} stroke={col} strokeWidth={2}
+                strokeDasharray={b.cables[0].steps?.pulled?.status==='approved'?'none':'6,3'}
+                markerEnd={`url(#${col==='#3fb950'?'arr-g':'arr'})`}/>
+              {b.cables.length>1?(
+                <g><circle cx={mx} cy={my} r={9} fill={col} opacity={.9}/><text x={mx} y={my+3.5} textAnchor="middle" fontSize="8" fill="#fff" fontWeight="700">{b.cables.length}</text></g>
+              ):(
+                <text x={mx+7} y={my-4} fontSize="8" fill={col} fontFamily="JetBrains Mono,monospace">{b.cables[0].tag}</text>
               )}
             </g>
           );
         })}
-
-        {/* Equipment nodes */}
-        {equipment.map(eq => {
-          const pos = positions[eq.id];
-          if (!pos) return null;
-          const eqt = EQ_TYPES[eq.type] || EQ_TYPES.OTHER;
-          const isDraggingThis = dragging?.type==='node' && dragging.id===eq.id;
-          return (
-            <g key={eq.id} transform={`translate(${pos.x},${pos.y})`}
-              onMouseEnter={e => setTooltip({eq, x:e.clientX, y:e.clientY})}
-              onMouseLeave={() => setTooltip(null)}>
-              <rect x={0} y={0} width={NODE_W} height={NODE_H}
-                rx={6} fill={eqt.color} stroke={isDraggingThis?'#58a6ff':eqt.border} strokeWidth={isDraggingThis?2.5:1.5}
-                filter={isDraggingThis?'drop-shadow(0 0 8px rgba(88,166,255,0.4))':''}/>
-              <text x={NODE_W/2} y={18} textAnchor="middle" fontSize="13" fill={eqt.border}>{eqt.icon}</text>
-              <text x={NODE_W/2} y={30} textAnchor="middle" fontSize="9" fill="#e6edf3" fontFamily="Rajdhani,sans-serif" fontWeight="600">{eq.tag}</text>
-              <text x={NODE_W/2} y={42} textAnchor="middle" fontSize="8" fill="#8b949e" fontFamily="Rajdhani,sans-serif">
-                {eq.label.length>16?eq.label.slice(0,14)+'…':eq.label}
-              </text>
+        {equipment.map(eq=>{
+          const pos=positions[eq.id];if(!pos)return null;
+          const eqt=EQ_TYPES[eq.type]||EQ_TYPES.OTHER;
+          const isDrag=dragging?.type==='node'&&dragging.id===eq.id;
+          return(
+            <g key={eq.id} transform={`translate(${pos.x},${pos.y})`} style={{cursor:'grab'}}>
+              <rect x={0} y={0} width={NODE_W} height={NODE_H} rx={6}
+                fill={eqt.color} stroke={isDrag?'#58a6ff':eqt.border} strokeWidth={isDrag?2.5:1.5}
+                filter={isDrag?'drop-shadow(0 0 8px rgba(88,166,255,.5))':''}/>
+              <text x={NODE_W/2} y={17} textAnchor="middle" fontSize="12" fill={eqt.border}>{eqt.icon}</text>
+              <text x={NODE_W/2} y={29} textAnchor="middle" fontSize="9" fill="#e6edf3" fontFamily="Rajdhani,sans-serif" fontWeight="700">{eq.tag}</text>
+              <text x={NODE_W/2} y={41} textAnchor="middle" fontSize="8" fill="#8b949e" fontFamily="Rajdhani,sans-serif">{eq.label.length>16?eq.label.slice(0,14)+'…':eq.label}</text>
               <text x={NODE_W/2} y={52} textAnchor="middle" fontSize="7" fill="#6e7681" fontFamily="Rajdhani,sans-serif">{eqt.label}</text>
             </g>
           );
@@ -580,358 +531,458 @@ function OneLineCanvas({ project, selectedCable, onSelectCable, viewMode }) {
 
       <div className="canvas-controls">
         <button className="canvas-btn" onClick={fitAll} title="Fit all">⊡</button>
-        <button className="canvas-btn" onClick={() => setVb(v=>({...v,scale:Math.min(4,v.scale*1.2)}))} title="Zoom in">+</button>
-        <button className="canvas-btn" onClick={() => setVb(v=>({...v,scale:Math.max(.1,v.scale*.8)}))} title="Zoom out">−</button>
+        <button className="canvas-btn" onClick={()=>setVb(v=>({...v,scale:Math.min(4,v.scale*1.2)}))} title="Zoom in">+</button>
+        <button className="canvas-btn" onClick={()=>setVb(v=>({...v,scale:Math.max(.08,v.scale*.8)}))} title="Zoom out">−</button>
+        <button className="canvas-btn" onClick={()=>setModal({type:'add-eq',x:200,y:100})} title="Add equipment">⊕</button>
+        <button className="canvas-btn" onClick={()=>setModal({type:'cable-from',fromId:''})} title="Add cable">🔌</button>
       </div>
-      <div className="canvas-hint">Scroll to zoom · Drag to pan · Drag node to move</div>
+      <div className="canvas-hint">Right-click canvas or node for options · Scroll to zoom · Drag node to reposition</div>
 
-      {tooltip && (
-        <div className="node-tooltip" style={{left:tooltip.x+12, top:tooltip.y-10, position:'fixed'}}>
-          <div style={{fontWeight:700, color:'#e6edf3'}}>{tooltip.eq.tag}</div>
-          <div style={{color:'#8b949e', fontSize:11}}>{tooltip.eq.label}</div>
-          {tooltip.eq.zone && <div style={{color:'#6e7681', fontSize:10}}>Zone: {tooltip.eq.zone}</div>}
-        </div>
+      {ctxMenu&&<ContextMenu x={ctxMenu.x} y={ctxMenu.y} items={ctxMenu.items} onClose={()=>setCtxMenu(null)}/>}
+
+      {(modal?.type==='add-eq'||modal?.type==='edit-eq')&&(
+        <AddEquipmentModal equipment={equipment} initial={modal?.eq} defaultPos={modal}
+          onSave={eq=>{
+            if(modal?.type==='edit-eq'){onUpdate({...project,equipment:equipment.map(e=>e.id===eq.id?{...eq,x:positions[eq.id]?.x,y:positions[eq.id]?.y}:e)});setModal(null);toast('Updated '+eq.tag,'success');}
+            else addEquipment({...eq,x:modal?.x||100,y:modal?.y||100});
+          }}
+          onClose={()=>setModal(null)}/>
+      )}
+      {modal?.type==='cable-from'&&(
+        <AddCableModal equipment={equipment} defaultFrom={modal.fromId} onSave={addCable} onClose={()=>setModal(null)}/>
       )}
     </div>
   );
 }
 
-// ─── Step Modal ──────────────────────────────────────────────────────────────
-function StepModal({ cable, stepIndex, isSuper, onSave, onClose }) {
-  const step = STEPS[stepIndex];
-  const existing = cable.steps?.[step.id] || {};
-  const [notes, setNotes]       = useState(existing.notes||'');
-  const [testVal, setTestVal]   = useState(existing[step.testKey]||'');
-  const [lockNum, setLockNum]   = useState(existing.lockNumber||'');
-  const [worker, setWorker]     = useState(existing.workerName||'');
-  const [photos, setPhotos]     = useState(existing.photos||[]);
-  const fileRef = useRef();
+// ─── Step Modal ────────────────────────────────────────────────────────────────
+function StepModal({cable,stepIndex,isSuper,onSave,onClose}){
+  const step=STEPS[stepIndex];
+  const ex=cable.steps?.[step.id]||{};
+  const[notes,setNotes]=useState(ex.notes||'');
+  const[testVal,setTestVal]=useState(ex[step.testKey]||'');
+  const[lockNum,setLockNum]=useState(ex.lockNumber||'');
+  const[worker,setWorker]=useState(ex.workerName||'');
+  const[photos,setPhotos]=useState(ex.photos||[]);
+  const fileRef=useRef();
+  const status=ex.status||'pending';
 
-  const status = existing.status||'pending';
-
-  function addPhotos(files) {
-    Array.from(files).forEach(f => {
-      const reader = new FileReader();
-      reader.onload = e => setPhotos(p => [...p, {name:f.name, dataUrl:e.target.result}]);
-      reader.readAsDataURL(f);
-    });
+  function addPhotos(files){
+    Array.from(files).forEach(f=>{const rd=new FileReader();rd.onload=e=>setPhotos(p=>[...p,{name:f.name,dataUrl:e.target.result}]);rd.readAsDataURL(f);});
+  }
+  function submit(action){
+    const d={status:action,notes,photos};
+    if(step.testKey)d[step.testKey]=testVal;
+    if(step.loto){d.lockNumber=lockNum;d.workerName=worker;}
+    onSave(step.id,d);
   }
 
-  function submit(action) {
-    const data = { status:action, notes, photos };
-    if (step.testKey) data[step.testKey] = testVal;
-    if (step.loto) { data.lockNumber = lockNum; data.workerName = worker; }
-    onSave(step.id, data);
-  }
-
-  const canApprove = isSuper;
-  const canSubmit = !isSuper;
-
-  return (
+  return(
     <div className="modal-backdrop" onClick={e=>e.target===e.currentTarget&&onClose()}>
       <div className="modal step-modal">
-        <div className="step-header">
-          <span className="step-icon">{step.icon}</span>
+        <div className="step-header-modal">
+          <span style={{fontSize:28}}>{step.icon}</span>
           <div>
-            <div className="step-name">{step.label}</div>
-            <div className="step-cable">Cable: <span style={{color:'#39d0d8',fontFamily:'JetBrains Mono,monospace'}}>{cable.tag}</span></div>
+            <div style={{fontSize:16,fontWeight:700}}>{step.label}</div>
+            <div style={{fontSize:13,color:'#8b949e'}}>Cable: <span style={{color:'#39d0d8',fontFamily:'JetBrains Mono,monospace'}}>{cable.tag}</span></div>
           </div>
           <div style={{marginLeft:'auto'}}>
-            <span className={`badge badge-${status}`}>● {status.toUpperCase()}</span>
+            <span style={{padding:'3px 10px',borderRadius:12,background:status==='approved'?'#003a10':status==='submitted'?'#3a2a00':status==='rejected'?'#3a0a0a':'#1a1f27',color:status==='approved'?'#3fb950':status==='submitted'?'#d29922':status==='rejected'?'#f85149':'#8b949e',fontSize:12,fontWeight:700}}>
+              ● {status.toUpperCase()}
+            </span>
           </div>
         </div>
 
-        {step.loto && (
-          <div className="form-grid form-row">
-            <div><label>🔒 Lock Number</label><input value={lockNum} onChange={e=>setLockNum(e.target.value)} placeholder="e.g. L-042"/></div>
-            <div><label>👷 Worker Name</label><input value={worker} onChange={e=>setWorker(e.target.value)} placeholder="Full name"/></div>
+        {step.loto&&(
+          <div style={{background:'rgba(255,68,136,.08)',border:'1px solid rgba(255,68,136,.3)',borderRadius:8,padding:16,marginBottom:16}}>
+            <div style={{fontSize:14,fontWeight:700,color:'#ff88aa',marginBottom:12}}>🔒 LOTO Information</div>
+            <div className="form-grid">
+              <div><label>Lock Number</label><input value={lockNum} onChange={e=>setLockNum(e.target.value)} placeholder="e.g. L-042"/></div>
+              <div><label>Worker Name</label><input value={worker} onChange={e=>setWorker(e.target.value)} placeholder="Full name"/></div>
+            </div>
           </div>
         )}
-
-        {step.testKey && (
+        {step.testKey&&(
           <div className="form-row">
-            <label>{step.unit ? `Test Result (${step.unit})` : 'Test Result'}</label>
-            <input className="test-result-input" value={testVal} onChange={e=>setTestVal(e.target.value)}
-              placeholder={step.unit?`e.g. 1000 ${step.unit}`:'PASS / FAIL'}
-              style={{textAlign:'center',fontSize:20,fontFamily:'JetBrains Mono,monospace'}}/>
+            <label>{step.unit?`Test Result (${step.unit})`:'Test Result'}</label>
+            <input value={testVal} onChange={e=>setTestVal(e.target.value)} placeholder={step.unit?`e.g. 1000 ${step.unit}`:'PASS / FAIL'} style={{textAlign:'center',fontSize:20,fontFamily:'JetBrains Mono,monospace'}}/>
           </div>
         )}
-
-        <div className="form-row">
-          <label>Notes</label>
-          <textarea rows={2} value={notes} onChange={e=>setNotes(e.target.value)} placeholder="Optional notes…" style={{resize:'vertical'}}/>
-        </div>
-
+        <div className="form-row"><label>Notes</label><textarea rows={2} value={notes} onChange={e=>setNotes(e.target.value)} style={{resize:'vertical'}}/></div>
         <div className="form-row">
           <label>Photos</label>
-          <input ref={fileRef} type="file" accept="image/*" multiple style={{display:'none'}}
-            onChange={e=>addPhotos(e.target.files)}/>
-          <div className="photo-upload" onClick={()=>fileRef.current.click()}>
-            📷 Click to add photos
-          </div>
-          {photos.length > 0 && (
-            <div className="photo-list">
-              {photos.map((p,i)=>(
-                <div key={i} className="photo-thumb" title={p.name}>
-                  {p.dataUrl ? <img src={p.dataUrl} alt={p.name}/> : <span>📷</span>}
-                  <button className="photo-remove" onClick={e=>{e.stopPropagation();setPhotos(ph=>ph.filter((_,j)=>j!==i))}}>✕</button>
-                </div>
-              ))}
+          <input ref={fileRef} type="file" accept="image/*" multiple style={{display:'none'}} onChange={e=>addPhotos(e.target.files)}/>
+          <div className="photo-upload" onClick={()=>fileRef.current.click()}>📷 Click to add photos</div>
+          {photos.length>0&&<div className="photo-list">{photos.map((p,i)=>(
+            <div key={i} className="photo-thumb" title={p.name}>
+              {p.dataUrl?<img src={p.dataUrl} alt={p.name}/>:<span>📷</span>}
+              <button className="photo-remove" onClick={ev=>{ev.stopPropagation();setPhotos(ph=>ph.filter((_,j)=>j!==i));}}>✕</button>
             </div>
-          )}
+          ))}</div>}
         </div>
-
         <div className="modal-footer">
           <button className="btn" onClick={onClose}>Cancel</button>
-          {step.optional && status==='pending' && (
-            <button className="btn btn-yellow btn-sm" onClick={()=>submit('approved')}>Skip (N/A)</button>
-          )}
-          {canSubmit && status==='pending' && (
-            <button className="btn btn-primary" onClick={()=>submit('submitted')}>Submit for Approval</button>
-          )}
-          {canApprove && (status==='submitted'||status==='pending') && (
-            <>
-              <button className="btn btn-red btn-sm" onClick={()=>submit('rejected')}>Reject</button>
-              <button className="btn btn-green" onClick={()=>submit('approved')}>Approve ✓</button>
-            </>
-          )}
-          {canApprove && status==='approved' && (
-            <button className="btn btn-yellow btn-sm" onClick={()=>submit('pending')}>Revoke</button>
-          )}
+          {step.optional&&status==='pending'&&<button className="btn btn-yellow btn-sm" onClick={()=>submit('approved')}>Skip (N/A)</button>}
+          {!isSuper&&status==='pending'&&<button className="btn btn-primary" onClick={()=>submit('submitted')}>Submit for Approval</button>}
+          {isSuper&&(status==='submitted'||status==='pending')&&<><button className="btn btn-red btn-sm" onClick={()=>submit('rejected')}>Reject</button><button className="btn btn-green" onClick={()=>submit('approved')}>Approve ✓</button></>}
+          {isSuper&&status==='approved'&&<button className="btn btn-yellow btn-sm" onClick={()=>submit('pending')}>Revoke</button>}
         </div>
       </div>
     </div>
   );
 }
 
-// ─── Cable Detail ─────────────────────────────────────────────────────────────
-function CableDetail({ cable, equipment, isSuper, onUpdate }) {
-  const [stepModal, setStepModal] = useState(null);
-  const byId = {};
-  (equipment||[]).forEach(e => { byId[e.id]=e; });
-  const from = byId[cable.fromId];
-  const to   = byId[cable.toId];
-  const { done, total, pct } = cableProgress(cable);
+// ─── Cable Detail ──────────────────────────────────────────────────────────────
+function CableDetail({cable,equipment,isSuper,onUpdate}){
+  const[stepModal,setStepModal]=useState(null);
+  const byId={};(equipment||[]).forEach(e=>{byId[e.id]=e;});
+  const{done,total,pct}=cableProgress(cable);
+  const isLOTO=cable.steps?.loto?.status==='approved';
 
-  function saveStep(stepId, data) {
-    const newCable = { ...cable, steps:{ ...(cable.steps||{}), [stepId]:{...(cable.steps?.[stepId]||{}), ...data} } };
-    onUpdate(newCable);
-    setStepModal(null);
+  function saveStep(stepId,data){
+    const nc={...cable,steps:{...(cable.steps||{}),[stepId]:{...(cable.steps?.[stepId]||{}),...data}}};
+    onUpdate(nc);setStepModal(null);
   }
 
-  return (
+  return(
     <div className="cable-detail">
       <div className="cd-header">
         <div>
           <div className="cd-tag">{cable.tag}</div>
-          <div className="cd-desc">{cable.cableType} · {cable.voltage} · {cable.conductors} conductors</div>
+          <div style={{fontSize:12,color:'#8b949e'}}>{cable.cableType}·{cable.voltage}·{cable.conductors} cond</div>
         </div>
-        <div style={{marginLeft:16}}>
-          <div style={{fontSize:12,color:'#8b949e'}}>
-            {from?.tag||cable.fromId} → {to?.tag||cable.toId}
-          </div>
-          {cable.conduit && <div style={{fontSize:11,color:'#6e7681'}}>Conduit: {cable.conduit}</div>}
+        <div style={{marginLeft:12,fontSize:12,color:'#8b949e'}}>
+          {byId[cable.fromId]?.tag||cable.fromId} → {byId[cable.toId]?.tag||cable.toId}
+          {cable.conduit&&<span style={{color:'#6e7681',marginLeft:8}}>Conduit: {cable.conduit}</span>}
         </div>
         <div style={{marginLeft:'auto',textAlign:'right'}}>
-          <div style={{fontSize:24,fontWeight:700,color:pct===100?'#3fb950':'#58a6ff',fontFamily:'JetBrains Mono,monospace'}}>{pct}%</div>
+          <div style={{fontSize:22,fontWeight:700,color:pct===100?'#3fb950':'#58a6ff',fontFamily:'JetBrains Mono,monospace'}}>{pct}%</div>
           <div style={{fontSize:11,color:'#8b949e'}}>{done}/{total} steps</div>
         </div>
-        {cable.steps?.loto?.status==='approved' && (
-          <div className="loto-badge" style={{marginLeft:12}}>🔒 LOTO · {cable.steps.loto.lockNumber}</div>
-        )}
+        {/* LOTO status — prominent */}
+        <div style={{marginLeft:16,display:'flex',flexDirection:'column',alignItems:'center',gap:4}}>
+          <div style={{fontSize:28}}>{isLOTO?'🔒':'🔓'}</div>
+          <span className={`loto-badge ${isLOTO?'locked':'unlocked'}`}>{isLOTO?`LOCKED · ${cable.steps.loto.lockNumber||'—'}`:'UNLOCKED'}</span>
+        </div>
       </div>
-
       <div className="cd-steps">
-        {STEPS.map((step, i) => {
-          const st = cable.steps?.[step.id] || {};
-          const status = st.status || 'pending';
-          const prevApproved = i===0 || cable.steps?.[STEPS[i-1].id]?.status==='approved';
-          const isDisabled = !isSuper && !prevApproved;
-          return (
-            <div key={step.id}
-              className={`cd-step st-${status} ${isDisabled?'disabled':''}`}
-              onClick={() => !isDisabled && setStepModal(i)}>
+        {STEPS.map((step,i)=>{
+          const st=cable.steps?.[step.id]||{};const status=st.status||'pending';
+          const prevOk=i===0||cable.steps?.[STEPS[i-1].id]?.status==='approved';
+          const disabled=!isSuper&&!prevOk;
+          return(
+            <div key={step.id} className={`cd-step st-${status} ${disabled?'disabled':''} ${step.loto?'loto-step':''}`}
+              onClick={()=>!disabled&&setStepModal(i)}>
               <div className="cd-step-icon">{step.icon}</div>
               <div className="cd-step-label">{step.label}</div>
-              <div className="cd-step-status" style={{color:stepColor(status)}}>
-                {status === 'approved' ? '✓ APPROVED' :
-                 status === 'submitted' ? '⏳ SUBMITTED' :
-                 status === 'rejected' ? '✗ REJECTED' : '· PENDING'}
+              <div className="cd-step-status">
+                {status==='approved'?'✓ DONE':status==='submitted'?'⏳ PENDING':status==='rejected'?'✗ REJECTED':'· OPEN'}
               </div>
-              {step.testKey && st[step.testKey] && (
-                <div style={{fontSize:10,color:'#8b949e',marginTop:2,fontFamily:'JetBrains Mono,monospace'}}>{st[step.testKey]}</div>
-              )}
-              {step.loto && st.lockNumber && (
-                <div style={{fontSize:10,color:'#ff88aa',marginTop:2}}>🔒 {st.lockNumber}</div>
-              )}
+              {step.testKey&&st[step.testKey]&&<div style={{fontSize:10,color:'#8b949e',fontFamily:'JetBrains Mono,monospace'}}>{st[step.testKey]}</div>}
+              {step.loto&&st.lockNumber&&<div style={{fontSize:10,color:'#ff88aa'}}>🔒 {st.lockNumber}</div>}
             </div>
           );
         })}
       </div>
-
-      {stepModal !== null && (
-        <StepModal cable={cable} stepIndex={stepModal} isSuper={isSuper}
-          onSave={saveStep} onClose={()=>setStepModal(null)}/>
-      )}
+      {stepModal!==null&&<StepModal cable={cable} stepIndex={stepModal} isSuper={isSuper} onSave={saveStep} onClose={()=>setStepModal(null)}/>}
     </div>
   );
 }
 
-// ─── Tracker Panel ───────────────────────────────────────────────────────────
-function TrackerPanel({ project, isSuper, onUpdate }) {
-  const [selected, setSelected] = useState(null);
-  const [filter, setFilter] = useState('');
+// ─── Tracker Panel ─────────────────────────────────────────────────────────────
+function TrackerPanel({project,isSuper,onUpdate}){
+  const[selected,setSelected]=useState(null);
+  const[search,setSearch]=useState('');
+  const[fZone,setFZone]=useState('');
+  const[fFrom,setFFrom]=useState('');
+  const[fTo,setFTo]=useState('');
+  const[fType,setFType]=useState('');
+  const[fProgress,setFProgress]=useState('');
+  const[lotoFilter,setLotoFilter]=useState(''); // ''|'locked'|'unlocked'
 
-  const cables = project.cables||[];
-  const equipment = project.equipment||[];
+  const cables=project.cables||[];
+  const equipment=project.equipment||[];
+  const byId={};equipment.forEach(e=>{byId[e.id]=e;});
 
-  const byId = {};
-  equipment.forEach(e => { byId[e.id]=e; });
+  // Unique options for dropdowns
+  const zones=[...new Set(cables.map(c=>c.zone).filter(Boolean))].sort();
+  const froms=[...new Set(cables.map(c=>byId[c.fromId]?.tag||c.fromId).filter(Boolean))].sort();
+  const tos=[...new Set(cables.map(c=>byId[c.toId]?.tag||c.toId).filter(Boolean))].sort();
+  const types=[...new Set(cables.map(c=>c.cableType).filter(Boolean))].sort();
 
-  const filtered = cables.filter(c => {
-    const q = filter.toLowerCase();
-    return !q || c.tag.toLowerCase().includes(q) || c.circuit?.toLowerCase().includes(q)
-      || c.fromId.toLowerCase().includes(q) || c.toId.toLowerCase().includes(q)
-      || byId[c.fromId]?.tag.toLowerCase().includes(q) || byId[c.toId]?.tag.toLowerCase().includes(q);
+  const filtered=cables.filter(c=>{
+    const fromTag=byId[c.fromId]?.tag||c.fromId;
+    const toTag=byId[c.toId]?.tag||c.toId;
+    const q=search.toLowerCase();
+    if(q&&!c.tag.toLowerCase().includes(q)&&!c.circuit?.toLowerCase().includes(q)
+       &&!fromTag.toLowerCase().includes(q)&&!toTag.toLowerCase().includes(q)
+       &&!c.conduit?.toLowerCase().includes(q))return false;
+    if(fZone&&c.zone!==fZone)return false;
+    if(fFrom&&fromTag!==fFrom)return false;
+    if(fTo&&toTag!==fTo)return false;
+    if(fType&&c.cableType!==fType)return false;
+    const pct=cableProgress(c).pct;
+    if(fProgress==='0'&&pct!==0)return false;
+    if(fProgress==='partial'&&(pct===0||pct===100))return false;
+    if(fProgress==='complete'&&pct!==100)return false;
+    const isLocked=c.steps?.loto?.status==='approved';
+    if(lotoFilter==='locked'&&!isLocked)return false;
+    if(lotoFilter==='unlocked'&&isLocked)return false;
+    return true;
   });
 
-  const total = cables.length;
-  const complete = cables.filter(c => cableProgress(c).pct===100).length;
-  const loto = cables.filter(c => c.steps?.loto?.status==='approved').length;
-  const avgPct = total ? Math.round(cables.reduce((a,c)=>a+cableProgress(c).pct,0)/total) : 0;
+  const total=cables.length;
+  const complete=cables.filter(c=>cableProgress(c).pct===100).length;
+  const lockedCount=cables.filter(c=>c.steps?.loto?.status==='approved').length;
+  const unlockedWithWork=cables.filter(c=>cableProgress(c).done>0&&c.steps?.loto?.status!=='approved').length;
+  const avgPct=total?Math.round(cables.reduce((a,c)=>a+cableProgress(c).pct,0)/total):0;
+  const submitted=cables.filter(c=>STEPS.some(s=>c.steps?.[s.id]?.status==='submitted')).length;
 
-  function updateCable(cable) {
-    const newCables = (project.cables||[]).map(c => c.id===cable.id?cable:c);
-    onUpdate({...project, cables:newCables});
-    setSelected(cable);
+  function updateCable(cable){
+    const nc=(project.cables||[]).map(c=>c.id===cable.id?cable:c);
+    onUpdate({...project,cables:nc});setSelected(cable);
   }
+  const selCable=selected?cables.find(c=>c.id===selected.id):null;
 
-  const selCable = selected ? cables.find(c=>c.id===selected.id) : null;
+  function clearFilters(){setSearch('');setFZone('');setFFrom('');setFTo('');setFType('');setFProgress('');setLotoFilter('');}
+  const hasFilters=search||fZone||fFrom||fTo||fType||fProgress||lotoFilter;
 
-  return (
-    <div className="tracker" style={{display:'flex',flexDirection:'column',flex:1,overflow:'hidden'}}>
+  return(
+    <div className="tracker" style={{flex:1,overflow:'hidden',display:'flex',flexDirection:'column'}}>
       {/* KPI */}
       <div className="kpi-strip">
-        <div className="kpi"><div className="kpi-val">{total}</div><div className="kpi-label">Total Cables</div></div>
+        <div className="kpi"><div className="kpi-val">{total}</div><div className="kpi-label">Total</div></div>
         <div className="kpi"><div className="kpi-val" style={{color:'#3fb950'}}>{complete}</div><div className="kpi-label">Complete</div></div>
-        <div className="kpi"><div className="kpi-val" style={{color:'#ff88aa'}}>{loto}</div><div className="kpi-label">LOTO Active</div></div>
+        <div className="kpi"><div className="kpi-val" style={{color:'#d29922'}}>{submitted}</div><div className="kpi-label">Pending Approval</div></div>
         <div className="kpi"><div className="kpi-val" style={{color:'#39d0d8'}}>{avgPct}%</div><div className="kpi-label">Avg Progress</div></div>
+        {/* LOTO KPIs — prominent */}
+        <div className="kpi loto-kpi" style={{cursor:'pointer'}} onClick={()=>setLotoFilter(lotoFilter==='locked'?'':lotoFilter==='unlocked'?'locked':'locked')}>
+          <div className="kpi-val" style={{fontSize:22}}>🔒 {lockedCount}</div>
+          <div className="kpi-label">Locked (LOTO)</div>
+        </div>
+        <div className="kpi" style={{background:'rgba(63,185,80,.04)',borderColor:'rgba(63,185,80,.3)',cursor:'pointer'}} onClick={()=>setLotoFilter(lotoFilter==='unlocked'?'':'unlocked')}>
+          <div className="kpi-val" style={{color:'#3fb950',fontSize:22}}>🔓 {unlockedWithWork}</div>
+          <div className="kpi-label">Active / Unlocked</div>
+        </div>
       </div>
 
-      {/* Filter */}
-      <div style={{padding:'8px 12px', borderBottom:'1px solid var(--border)', background:'var(--bg1)', flexShrink:0}}>
-        <input placeholder="Filter cables…" value={filter} onChange={e=>setFilter(e.target.value)}
-          style={{background:'var(--bg0)'}}/>
+      {/* Filter bar */}
+      <div className="filter-bar">
+        <div className="filter-group" style={{flex:'0 0 160px'}}>
+          <label>🔍 SEARCH</label>
+          <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Tag, circuit, conduit…"/>
+        </div>
+        <div className="filter-group">
+          <label>FROM</label>
+          <select value={fFrom} onChange={e=>setFFrom(e.target.value)}>
+            <option value="">All</option>
+            {froms.map(f=><option key={f} value={f}>{f}</option>)}
+          </select>
+        </div>
+        <div className="filter-group">
+          <label>TO</label>
+          <select value={fTo} onChange={e=>setFTo(e.target.value)}>
+            <option value="">All</option>
+            {tos.map(t=><option key={t} value={t}>{t}</option>)}
+          </select>
+        </div>
+        <div className="filter-group">
+          <label>ZONE</label>
+          <select value={fZone} onChange={e=>setFZone(e.target.value)}>
+            <option value="">All</option>
+            {zones.map(z=><option key={z} value={z}>{z}</option>)}
+          </select>
+        </div>
+        <div className="filter-group">
+          <label>STATUS</label>
+          <select value={fProgress} onChange={e=>setFProgress(e.target.value)}>
+            <option value="">All</option>
+            <option value="0">Not started</option>
+            <option value="partial">In progress</option>
+            <option value="complete">Complete</option>
+          </select>
+        </div>
+        <div className="loto-filter-btns">
+          <label style={{fontSize:11,color:'#ff88aa',letterSpacing:'.05em',display:'block',marginBottom:3}}>🔒 LOTO FILTER</label>
+          <div style={{display:'flex',gap:6}}>
+            <button className={`loto-btn locked ${lotoFilter==='locked'?'active':''}`} onClick={()=>setLotoFilter(lotoFilter==='locked'?'':'locked')}>
+              🔒 Locked
+            </button>
+            <button className={`loto-btn unlocked ${lotoFilter==='unlocked'?'active':''}`} onClick={()=>setLotoFilter(lotoFilter==='unlocked'?'':'unlocked')}>
+              🔓 Unlocked
+            </button>
+          </div>
+        </div>
+        {hasFilters&&<button className="btn btn-sm" style={{alignSelf:'flex-end'}} onClick={clearFilters}>✕ Clear</button>}
       </div>
 
-      {/* Grid */}
-      <div className="cable-grid-wrap" style={{flex:selCable?'0 0 45%':'1'}}>
-        <table className="cable-grid">
-          <thead>
-            <tr>
-              <th>Cable Tag</th><th>Circuit</th><th>From</th><th>To</th>
-              <th>Type</th><th>Progress</th><th>Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filtered.map(c => {
-              const {pct,done,total:t} = cableProgress(c);
-              const isLOTO = c.steps?.loto?.status==='approved';
-              return (
-                <tr key={c.id} className={selCable?.id===c.id?'selected':''}
-                  onClick={()=>setSelected(c)} style={{cursor:'pointer'}}>
-                  <td><span className="tag">{c.tag}</span>{isLOTO&&<span className="loto-badge" style={{marginLeft:6,fontSize:10,padding:'1px 6px'}}>🔒</span>}</td>
-                  <td>{c.circuit}</td>
-                  <td><span className="tag">{byId[c.fromId]?.tag||c.fromId}</span></td>
-                  <td><span className="tag">{byId[c.toId]?.tag||c.toId}</span></td>
-                  <td style={{color:'#8b949e',maxWidth:120,overflow:'hidden',textOverflow:'ellipsis'}}>{c.cableType}</td>
-                  <td>
-                    <div style={{display:'flex',alignItems:'center',gap:8}}>
-                      <div style={{width:60,height:5,background:'#1a1f27',borderRadius:3,overflow:'hidden'}}>
-                        <div style={{width:pct+'%',height:'100%',background:pct===100?'#3fb950':pct>60?'#39d0d8':'#d29922',borderRadius:3}}/>
+      {/* Step column headers */}
+      <div style={{display:'flex',borderBottom:'1px solid var(--border)',background:'var(--bg2)',flexShrink:0,overflowX:'auto'}}>
+        <div style={{flex:'0 0 320px',padding:'4px 8px',fontSize:10,color:'var(--text3)',fontWeight:700,borderRight:'1px solid var(--border2)'}}>
+          CABLE · ROUTE <span style={{color:'var(--text3)',marginLeft:4}}>({filtered.length} shown)</span>
+        </div>
+        {STEPS.map(s=>(
+          <div key={s.id} style={{flex:'0 0 58px',textAlign:'center',padding:'3px 2px',borderRight:'1px solid var(--border)',fontSize:'9px',color:s.loto?'#ff88aa':'var(--text3)',letterSpacing:'.04em',lineHeight:1.3}}>
+            <span style={{fontSize:13,display:'block'}}>{s.icon}</span>
+            {s.short}
+          </div>
+        ))}
+      </div>
+
+      {/* Cable rows */}
+      <div style={{flex:selCable?'0 0 auto':1,maxHeight:selCable?'50%':'none',overflowY:'auto',overflowX:'auto'}}>
+        {filtered.map(c=>{
+          const fromTag=byId[c.fromId]?.tag||c.fromId;
+          const toTag=byId[c.toId]?.tag||c.toId;
+          const isLocked=c.steps?.loto?.status==='approved';
+          const{pct}=cableProgress(c);
+          return(
+            <div key={c.id} className={`cable-row ${selCable?.id===c.id?'selected':''} ${isLocked?'loto-active':''}`}
+              onClick={()=>setSelected(c)}>
+              {/* Info cols */}
+              <div className="cable-info">
+                <div>
+                  <div className="cable-tag">{c.tag}</div>
+                  <div className="cable-route">{fromTag} → {toTag}</div>
+                  {c.conduit&&<div style={{fontSize:10,color:'#6e7681'}}>{c.conduit}</div>}
+                </div>
+                <div style={{marginLeft:'auto',display:'flex',flexDirection:'column',alignItems:'flex-end',gap:3}}>
+                  {/* LOTO lock icon — very visible */}
+                  <span style={{fontSize:16}} title={isLocked?'LOTO LOCKED':'Unlocked'}>{isLocked?'🔒':'🔓'}</span>
+                  <div style={{fontSize:11,fontFamily:'JetBrains Mono,monospace',color:pct===100?'#3fb950':'#58a6ff'}}>{pct}%</div>
+                </div>
+              </div>
+              {/* Step pills */}
+              <div className="step-cells">
+                {STEPS.map(step=>{
+                  const st=c.steps?.[step.id]||{};const status=st.status||'pending';
+                  return(
+                    <div key={step.id} className="step-cell">
+                      <div className={`step-pill st-${status} ${step.loto?'loto-pill':''}`}
+                        onClick={e=>{e.stopPropagation();setSelected(c);}}>
+                        <span className="pill-icon">{
+                          step.loto?(status==='approved'?'🔒':'🔓'):pillIcon(status)
+                        }</span>
                       </div>
-                      <span style={{fontSize:12,color:'#8b949e',fontFamily:'JetBrains Mono,monospace'}}>{pct}%</span>
                     </div>
-                  </td>
-                  <td>
-                    <div className="step-dots">
-                      {STEPS.map(s => {
-                        const st = c.steps?.[s.id]?.status||'pending';
-                        return <div key={s.id} className="step-dot" style={{background:stepColor(st)}} title={s.label+': '+st}/>;
-                      })}
-                    </div>
-                  </td>
-                </tr>
-              );
-            })}
-            {filtered.length===0 && (
-              <tr><td colSpan={7} style={{textAlign:'center',padding:24,color:'#6e7681'}}>No cables found</td></tr>
-            )}
-          </tbody>
-        </table>
+                  );
+                })}
+              </div>
+            </div>
+          );
+        })}
+        {filtered.length===0&&<div style={{textAlign:'center',padding:32,color:'#6e7681',fontSize:14}}>No cables match the current filters</div>}
       </div>
 
-      {selCable && (
-        <CableDetail cable={selCable} equipment={equipment} isSuper={isSuper} onUpdate={updateCable}/>
+      {selCable&&(
+        <CableDetail cable={selCable} equipment={equipment} isSuper={isSuper}
+          onUpdate={cable=>{updateCable(cable);setSelected(cable);}}/>
       )}
     </div>
   );
 }
 
-// ─── New Project Modal ────────────────────────────────────────────────────────
-function NewProjectModal({ onSave, onClose }) {
-  const [name, setName] = useState('');
-  const [site, setSite] = useState('');
-  const [desc, setDesc] = useState('');
-  return (
+// ─── Add Equipment Modal ───────────────────────────────────────────────────────
+function AddEquipmentModal({equipment,initial,onSave,onClose}){
+  const[id,setId]=useState(initial?.id||'eq'+uid());
+  const[tag,setTag]=useState(initial?.tag||'');
+  const[type,setType]=useState(initial?.type||'LV_SW');
+  const[label,setLabel]=useState(initial?.label||'');
+  const[zone,setZone]=useState(initial?.zone||'');
+  const[parent,setParent]=useState(initial?.parentId||'');
+  return(
     <div className="modal-backdrop" onClick={e=>e.target===e.currentTarget&&onClose()}>
-      <div className="modal">
-        <div className="modal-title">New WireFlow Project</div>
-        <div className="form-row"><label>Project Name *</label><input value={name} onChange={e=>setName(e.target.value)} placeholder="e.g. Data Center — Phase 2"/></div>
-        <div className="form-row"><label>Site / Location</label><input value={site} onChange={e=>setSite(e.target.value)} placeholder="e.g. Building A, Floor 2"/></div>
-        <div className="form-row"><label>Description</label><textarea rows={2} value={desc} onChange={e=>setDesc(e.target.value)} style={{resize:'vertical'}}/></div>
+      <div className="modal" style={{minWidth:520}}>
+        <div className="modal-title">{initial?'Edit Equipment':'Add Equipment'}</div>
+        <div className="eq-type-grid">{Object.entries(EQ_TYPES).map(([k,v])=>(
+          <div key={k} className={`eq-type-btn ${type===k?'active':''}`} onClick={()=>setType(k)}>{v.icon} {v.label}</div>
+        ))}</div>
+        <div className="form-grid form-row">
+          <div><label>ID *</label><input value={id} onChange={e=>setId(e.target.value)} disabled={!!initial}/></div>
+          <div><label>Tag *</label><input value={tag} onChange={e=>setTag(e.target.value)} placeholder="TX-01"/></div>
+        </div>
+        <div className="form-grid form-row">
+          <div><label>Label</label><input value={label} onChange={e=>setLabel(e.target.value)} placeholder="Main Transformer"/></div>
+          <div><label>Zone / Room</label><input value={zone} onChange={e=>setZone(e.target.value)}/></div>
+        </div>
+        <div className="form-row"><label>Parent Equipment</label>
+          <select value={parent} onChange={e=>setParent(e.target.value)}>
+            <option value="">— None (root) —</option>
+            {equipment.filter(e=>e.id!==id).map(e=><option key={e.id} value={e.id}>{e.tag} — {e.label}</option>)}
+          </select>
+        </div>
         <div className="modal-footer">
           <button className="btn" onClick={onClose}>Cancel</button>
-          <button className="btn btn-primary" disabled={!name.trim()} onClick={()=>onSave({name:name.trim(),site,desc,equipment:[],cables:[],createdAt:Date.now()})}>Create Project</button>
+          <button className="btn btn-primary" disabled={!id.trim()||!tag.trim()} onClick={()=>onSave({id,tag,type,label,zone,parentId:parent,steps:{}})}>
+            {initial?'Save Changes':'Add Equipment'}
+          </button>
         </div>
       </div>
     </div>
   );
 }
 
-// ─── Import Modal ─────────────────────────────────────────────────────────────
-function ImportModal({ onImport, onClose, toast }) {
-  const [dragging, setDragging] = useState(false);
-  const fileRef = useRef();
-
-  function handleFile(file) {
-    const reader = new FileReader();
-    reader.onload = e => {
-      try {
-        const result = parseExcel(new Uint8Array(e.target.result));
-        if (!result.equipment.length && !result.cables.length) {
-          toast('No data found. Check sheet names: Equipment, Cables', 'error'); return;
-        }
-        onImport(result);
-      } catch(err) {
-        toast('Import failed: '+err.message, 'error');
-      }
-    };
-    reader.readAsArrayBuffer(file);
-  }
-
-  return (
+// ─── Add Cable Modal ───────────────────────────────────────────────────────────
+function AddCableModal({equipment,defaultFrom,onSave,onClose}){
+  const[tag,setTag]=useState('');const[circuit,setCircuit]=useState('');
+  const[cableType,setCableType]=useState('XLPE 4/C #2 AWG');const[voltage,setVoltage]=useState('600V');
+  const[conductors,setConductors]=useState('4');const[conduit,setConduit]=useState('');
+  const[fromId,setFromId]=useState(defaultFrom||'');const[toId,setToId]=useState('');
+  const[zone,setZone]=useState('');const[sub,setSub]=useState('');
+  return(
     <div className="modal-backdrop" onClick={e=>e.target===e.currentTarget&&onClose()}>
-      <div className="modal" style={{minWidth:480}}>
+      <div className="modal" style={{minWidth:560}}>
+        <div className="modal-title">Add Cable</div>
+        <div className="form-grid form-row">
+          <div><label>Cable Tag *</label><input value={tag} onChange={e=>setTag(e.target.value)} placeholder="C-001"/></div>
+          <div><label>Circuit #</label><input value={circuit} onChange={e=>setCircuit(e.target.value)} placeholder="CB-001"/></div>
+        </div>
+        <div className="form-grid form-row">
+          <div><label>From *</label><select value={fromId} onChange={e=>setFromId(e.target.value)}><option value="">— select —</option>{equipment.map(e=><option key={e.id} value={e.id}>{e.tag} — {e.label}</option>)}</select></div>
+          <div><label>To *</label><select value={toId} onChange={e=>setToId(e.target.value)}><option value="">— select —</option>{equipment.map(e=><option key={e.id} value={e.id}>{e.tag} — {e.label}</option>)}</select></div>
+        </div>
+        <div className="form-grid-3 form-row">
+          <div><label>Cable Type</label><input value={cableType} onChange={e=>setCableType(e.target.value)}/></div>
+          <div><label>Voltage</label><input value={voltage} onChange={e=>setVoltage(e.target.value)}/></div>
+          <div><label>Conductors</label><input value={conductors} onChange={e=>setConductors(e.target.value)}/></div>
+        </div>
+        <div className="form-grid form-row">
+          <div><label>Conduit ID</label><input value={conduit} onChange={e=>setConduit(e.target.value)} placeholder="CDT-01"/></div>
+          <div><label>Zone</label><input value={zone} onChange={e=>setZone(e.target.value)}/></div>
+        </div>
+        <div className="form-row"><label>Sub Trade</label><input value={sub} onChange={e=>setSub(e.target.value)}/></div>
+        <div className="modal-footer">
+          <button className="btn" onClick={onClose}>Cancel</button>
+          <button className="btn btn-primary" disabled={!tag.trim()||!fromId||!toId}
+            onClick={()=>onSave({id:uid(),tag,circuit,cableType,voltage,conductors,conduit,fromId,toId,zone,subTrade:sub,notes:'',steps:{}})}>Add Cable</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Import Modal ──────────────────────────────────────────────────────────────
+function ImportModal({onImport,onClose,toast}){
+  const[drag,setDrag]=useState(false);const fileRef=useRef();
+  function handle(file){
+    const rd=new FileReader();rd.onload=e=>{
+      try{const r=parseExcel(new Uint8Array(e.target.result));
+        if(!r.equipment.length&&!r.cables.length){toast('No data found. Check sheet names.','error');return;}
+        onImport(r);
+      }catch(err){toast('Import failed: '+err.message,'error');}
+    };rd.readAsArrayBuffer(file);
+  }
+  return(
+    <div className="modal-backdrop" onClick={e=>e.target===e.currentTarget&&onClose()}>
+      <div className="modal" style={{minWidth:460}}>
         <div className="modal-title">Import from Excel</div>
-        <p style={{color:'#8b949e',fontSize:14,marginBottom:16}}>Upload an Excel file with Equipment and Cables sheets. Download the template to see the expected format.</p>
-        <input ref={fileRef} type="file" accept=".xlsx,.xls" style={{display:'none'}} onChange={e=>handleFile(e.target.files[0])}/>
-        <div className={`photo-upload ${dragging?'drag-over':''}`} style={{marginBottom:16}}
-          onDragOver={e=>{e.preventDefault();setDragging(true)}}
-          onDragLeave={()=>setDragging(false)}
-          onDrop={e=>{e.preventDefault();setDragging(false);handleFile(e.dataTransfer.files[0])}}
+        <p style={{color:'#8b949e',fontSize:14,marginBottom:16}}>Upload an Excel file with Equipment and Cables sheets.</p>
+        <input ref={fileRef} type="file" accept=".xlsx,.xls" style={{display:'none'}} onChange={e=>handle(e.target.files[0])}/>
+        <div className={`photo-upload ${drag?'drag-over':''}`} style={{marginBottom:16}}
+          onDragOver={e=>{e.preventDefault();setDrag(true);}} onDragLeave={()=>setDrag(false)}
+          onDrop={e=>{e.preventDefault();setDrag(false);handle(e.dataTransfer.files[0]);}}
           onClick={()=>fileRef.current.click()}>
-          📂 Drop Excel file here, or click to browse
+          📂 Drop Excel file here or click to browse
         </div>
         <div className="modal-footer">
           <button className="btn" onClick={onClose}>Cancel</button>
@@ -942,206 +993,95 @@ function ImportModal({ onImport, onClose, toast }) {
   );
 }
 
-// ─── Add Equipment Modal ──────────────────────────────────────────────────────
-function AddEquipmentModal({ equipment, onSave, onClose }) {
-  const [id, setId]       = useState('eq'+uid());
-  const [tag, setTag]     = useState('');
-  const [type, setType]   = useState('LV_SW');
-  const [label, setLabel] = useState('');
-  const [zone, setZone]   = useState('');
-  const [parent, setParent] = useState('');
-  return (
+// ─── New Project Modal ─────────────────────────────────────────────────────────
+function NewProjectModal({onSave,onClose}){
+  const[name,setName]=useState('');const[site,setSite]=useState('');const[desc,setDesc]=useState('');
+  return(
     <div className="modal-backdrop" onClick={e=>e.target===e.currentTarget&&onClose()}>
-      <div className="modal" style={{minWidth:520}}>
-        <div className="modal-title">Add Equipment</div>
-        <div className="eq-type-grid">
-          {Object.entries(EQ_TYPES).map(([k,v])=>(
-            <div key={k} className={`eq-type-btn ${type===k?'active':''}`} onClick={()=>setType(k)}>
-              {v.icon} {v.label}
-            </div>
-          ))}
-        </div>
-        <div className="form-grid form-row">
-          <div><label>Equipment ID *</label><input value={id} onChange={e=>setId(e.target.value)} placeholder="eq1"/></div>
-          <div><label>Tag *</label><input value={tag} onChange={e=>setTag(e.target.value)} placeholder="TX-01"/></div>
-        </div>
-        <div className="form-grid form-row">
-          <div><label>Label</label><input value={label} onChange={e=>setLabel(e.target.value)} placeholder="Main Transformer"/></div>
-          <div><label>Zone / Room</label><input value={zone} onChange={e=>setZone(e.target.value)} placeholder="Switchroom"/></div>
-        </div>
-        <div className="form-row">
-          <label>Parent Equipment (feeds from)</label>
-          <select value={parent} onChange={e=>setParent(e.target.value)}>
-            <option value="">— None (root) —</option>
-            {equipment.map(e=><option key={e.id} value={e.id}>{e.tag} — {e.label}</option>)}
-          </select>
-        </div>
+      <div className="modal">
+        <div className="modal-title">New WireFlow Project</div>
+        <div className="form-row"><label>Project Name *</label><input value={name} onChange={e=>setName(e.target.value)} placeholder="e.g. Data Center Phase 2"/></div>
+        <div className="form-row"><label>Site / Location</label><input value={site} onChange={e=>setSite(e.target.value)} placeholder="e.g. Building A"/></div>
+        <div className="form-row"><label>Description</label><textarea rows={2} value={desc} onChange={e=>setDesc(e.target.value)} style={{resize:'vertical'}}/></div>
         <div className="modal-footer">
           <button className="btn" onClick={onClose}>Cancel</button>
-          <button className="btn btn-primary" disabled={!id.trim()||!tag.trim()} onClick={()=>onSave({id,tag,type,label,zone,parentId:parent,steps:{}})}>Add Equipment</button>
+          <button className="btn btn-primary" disabled={!name.trim()} onClick={()=>onSave({name:name.trim(),site,desc,equipment:[],cables:[],createdAt:Date.now()})}>Create</button>
         </div>
       </div>
     </div>
   );
 }
 
-// ─── Add Cable Modal ──────────────────────────────────────────────────────────
-function AddCableModal({ equipment, onSave, onClose }) {
-  const [tag, setTag]       = useState('');
-  const [circuit, setCircuit] = useState('');
-  const [cableType, setCableType] = useState('XLPE 4/C #2 AWG');
-  const [voltage, setVoltage] = useState('600V');
-  const [conductors, setConductors] = useState('4');
-  const [conduit, setConduit] = useState('');
-  const [fromId, setFromId] = useState('');
-  const [toId, setToId]     = useState('');
-  const [zone, setZone]     = useState('');
-  const [sub, setSub]       = useState('');
-  return (
-    <div className="modal-backdrop" onClick={e=>e.target===e.currentTarget&&onClose()}>
-      <div className="modal" style={{minWidth:560}}>
-        <div className="modal-title">Add Cable</div>
-        <div className="form-grid form-row">
-          <div><label>Cable Tag *</label><input value={tag} onChange={e=>setTag(e.target.value)} placeholder="C-001"/></div>
-          <div><label>Circuit #</label><input value={circuit} onChange={e=>setCircuit(e.target.value)} placeholder="CB-001"/></div>
-        </div>
-        <div className="form-grid form-row">
-          <div><label>From Equipment *</label>
-            <select value={fromId} onChange={e=>setFromId(e.target.value)}>
-              <option value="">— Select source —</option>
-              {equipment.map(e=><option key={e.id} value={e.id}>{e.tag} — {e.label}</option>)}
-            </select>
-          </div>
-          <div><label>To Equipment *</label>
-            <select value={toId} onChange={e=>setToId(e.target.value)}>
-              <option value="">— Select destination —</option>
-              {equipment.map(e=><option key={e.id} value={e.id}>{e.tag} — {e.label}</option>)}
-            </select>
-          </div>
-        </div>
-        <div className="form-grid-3 form-row">
-          <div><label>Cable Type</label><input value={cableType} onChange={e=>setCableType(e.target.value)}/></div>
-          <div><label>Voltage</label><input value={voltage} onChange={e=>setVoltage(e.target.value)}/></div>
-          <div><label>Conductors</label><input value={conductors} onChange={e=>setConductors(e.target.value)}/></div>
-        </div>
-        <div className="form-grid form-row">
-          <div><label>Conduit ID</label><input value={conduit} onChange={e=>setConduit(e.target.value)} placeholder="CDT-01"/></div>
-          <div><label>Zone / Room</label><input value={zone} onChange={e=>setZone(e.target.value)}/></div>
-        </div>
-        <div className="form-row"><label>Sub Trade</label><input value={sub} onChange={e=>setSub(e.target.value)} placeholder="e.g. Alpha Electric"/></div>
-        <div className="modal-footer">
-          <button className="btn" onClick={onClose}>Cancel</button>
-          <button className="btn btn-primary" disabled={!tag.trim()||!fromId||!toId}
-            onClick={()=>onSave({id:uid(),tag,circuit,cableType,voltage,conductors,conduit,fromId,toId,zone,subTrade:sub,notes:'',steps:{}})}>
-            Add Cable
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
+// ─── Project Editor ────────────────────────────────────────────────────────────
+function ProjectEditor({project,onUpdate,onBack,toast}){
+  const[view,setView]=useState('split');
+  const[isSuper,setIsSuper]=useState(false);
+  const[modal,setModal]=useState(null);
 
-// ─── Project Editor ───────────────────────────────────────────────────────────
-function ProjectEditor({ project, onUpdate, onBack, toast }) {
-  const [view, setView] = useState('split'); // 'diagram','split','tracker'
-  const [isSuper, setIsSuper] = useState(false);
-  const [modal, setModal] = useState(null);
+  function importData(data){onUpdate({...project,equipment:data.equipment,cables:data.cables});setModal(null);toast(`Imported ${data.equipment.length} equipment + ${data.cables.length} cables`,'success');}
 
-  function updateProject(p) { onUpdate(p); }
-  function addEquipment(eq) {
-    updateProject({...project, equipment:[...(project.equipment||[]), eq]});
-    setModal(null);
-    toast('Equipment added: '+eq.tag, 'success');
-  }
-  function addCable(cable) {
-    updateProject({...project, cables:[...(project.cables||[]), cable]});
-    setModal(null);
-    toast('Cable added: '+cable.tag, 'success');
-  }
-  function importData(data) {
-    updateProject({...project, equipment:data.equipment, cables:data.cables});
-    setModal(null);
-    toast(`Imported ${data.equipment.length} equipment + ${data.cables.length} cables`, 'success');
-  }
-
-  const showDiagram = view==='diagram'||view==='split';
-  const showTracker = view==='tracker'||view==='split';
-
-  return (
+  return(
     <div className="editor" style={{flex:1,overflow:'hidden',display:'flex',flexDirection:'column'}}>
       <div className="editor-bar">
         <button className="btn btn-sm" onClick={onBack}>← Projects</button>
         <div>
-          <div className="editor-bar-title">{project.name}</div>
-          {project.site && <div className="editor-bar-site">{project.site}</div>}
+          <div style={{fontSize:15,fontWeight:700}}>{project.name}</div>
+          {project.site&&<div style={{fontSize:12,color:'#8b949e'}}>{project.site}</div>}
         </div>
-        <div style={{display:'flex',gap:8,marginLeft:16}}>
-          <button className="btn btn-sm" onClick={()=>setModal('eq')}>+ Equipment</button>
-          <button className="btn btn-sm" onClick={()=>setModal('cable')}>+ Cable</button>
+        <div style={{display:'flex',gap:6,marginLeft:12,flexWrap:'wrap'}}>
           <button className="btn btn-sm" onClick={()=>setModal('import')}>↑ Import</button>
           <button className="btn btn-sm" onClick={()=>exportProject(project)}>↓ Export</button>
         </div>
-        <div className="view-toggle" style={{marginLeft:12}}>
+        <div className="view-toggle" style={{marginLeft:8}}>
           {['diagram','split','tracker'].map(v=>(
             <button key={v} className={`view-btn ${view===v?'active':''}`} onClick={()=>setView(v)}>
               {v==='diagram'?'One-Line':v==='split'?'Split':'Tracker'}
             </button>
           ))}
         </div>
-        <div style={{marginLeft:12,display:'flex',alignItems:'center',gap:8}}>
-          <label style={{marginBottom:0,display:'flex',alignItems:'center',gap:6,cursor:'pointer',fontSize:13,color:'#8b949e'}}>
-            <input type="checkbox" checked={isSuper} onChange={e=>setIsSuper(e.target.checked)} style={{width:'auto'}}/>
-            Superintendent Mode
-          </label>
-        </div>
+        <label style={{marginLeft:10,display:'flex',alignItems:'center',gap:6,cursor:'pointer',fontSize:13,color:'#8b949e',whiteSpace:'nowrap'}}>
+          <input type="checkbox" checked={isSuper} onChange={e=>setIsSuper(e.target.checked)} style={{width:'auto'}}/>
+          Superintendent Mode
+        </label>
       </div>
 
       <div className="editor-body" style={{flex:1,overflow:'hidden'}}>
-        {showDiagram && (
+        {(view==='diagram'||view==='split')&&(
           <div style={{flex:view==='split'?'0 0 50%':'1',borderRight:view==='split'?'1px solid var(--border)':'none',display:'flex',overflow:'hidden'}}>
-            <OneLineCanvas project={project} selectedCable={null} onSelectCable={()=>{}} viewMode={view}/>
+            <OneLineCanvas project={project} onUpdate={onUpdate} toast={toast}/>
           </div>
         )}
-        {showTracker && (
-          <TrackerPanel project={project} isSuper={isSuper} onUpdate={updateProject}/>
+        {(view==='tracker'||view==='split')&&(
+          <TrackerPanel project={project} isSuper={isSuper} onUpdate={onUpdate}/>
         )}
       </div>
 
-      {modal==='eq' && <AddEquipmentModal equipment={project.equipment||[]} onSave={addEquipment} onClose={()=>setModal(null)}/>}
-      {modal==='cable' && <AddCableModal equipment={project.equipment||[]} onSave={addCable} onClose={()=>setModal(null)}/>}
-      {modal==='import' && <ImportModal onImport={importData} onClose={()=>setModal(null)} toast={toast}/>}
+      {modal==='import'&&<ImportModal onImport={importData} onClose={()=>setModal(null)} toast={toast}/>}
     </div>
   );
 }
 
-// ─── Home Screen ──────────────────────────────────────────────────────────────
-function HomeScreen({ projects, onOpen, onCreate, onDelete, toast }) {
-  const [newModal, setNewModal] = useState(false);
-
-  function createProject(data) {
-    onCreate({...data, id:uid()});
-    setNewModal(false);
-    toast('Project created: '+data.name, 'success');
-  }
-
-  return (
+// ─── Home ──────────────────────────────────────────────────────────────────────
+function HomeScreen({projects,onOpen,onCreate,onDelete,toast}){
+  const[newM,setNewM]=useState(false);
+  function create(data){onCreate({...data,id:uid()});setNewM(false);toast('Project created: '+data.name,'success');}
+  return(
     <div className="home">
       <div className="home-header">
         <div className="home-title">Projects</div>
         <div style={{marginLeft:'auto',display:'flex',gap:8}}>
           <button className="btn btn-yellow btn-sm" onClick={downloadTemplate}>⬇ Template</button>
-          <button className="btn btn-primary" onClick={()=>setNewModal(true)}>+ New Project</button>
+          <button className="btn btn-primary" onClick={()=>setNewM(true)}>+ New Project</button>
         </div>
       </div>
       <div className="project-grid">
-        <div className="new-project-card" onClick={()=>setNewModal(true)}>
-          <span style={{fontSize:24}}>+</span> New Project
-        </div>
-        {projects.map(p => {
-          const cables = p.cables||[];
-          const complete = cables.filter(c=>cableProgress(c).pct===100).length;
-          const pct = cables.length ? Math.round(cables.reduce((a,c)=>a+cableProgress(c).pct,0)/cables.length) : 0;
-          return (
+        <div className="new-card" onClick={()=>setNewM(true)}><span style={{fontSize:24}}>+</span> New Project</div>
+        {projects.map(p=>{
+          const cables=p.cables||[];
+          const complete=cables.filter(c=>cableProgress(c).pct===100).length;
+          const locked=cables.filter(c=>c.steps?.loto?.status==='approved').length;
+          const pct=cables.length?Math.round(cables.reduce((a,c)=>a+cableProgress(c).pct,0)/cables.length):0;
+          return(
             <div key={p.id} className="project-card" onClick={()=>onOpen(p.id)}>
               <div className="pc-name">{p.name}</div>
               <div className="pc-meta">{p.site||'No location'} · {new Date(p.createdAt).toLocaleDateString()}</div>
@@ -1149,72 +1089,54 @@ function HomeScreen({ projects, onOpen, onCreate, onDelete, toast }) {
                 <div className="pc-stat"><div className="pc-stat-val">{p.equipment?.length||0}</div><div className="pc-stat-label">Equipment</div></div>
                 <div className="pc-stat"><div className="pc-stat-val">{cables.length}</div><div className="pc-stat-label">Cables</div></div>
                 <div className="pc-stat"><div className="pc-stat-val" style={{color:'#3fb950'}}>{complete}</div><div className="pc-stat-label">Done</div></div>
-                <div className="pc-stat"><div className="pc-stat-val" style={{color:'#39d0d8'}}>{pct}%</div><div className="pc-stat-label">Progress</div></div>
+                <div className="pc-stat"><div className="pc-stat-val" style={{color:'#ff4488'}}>{locked} 🔒</div><div className="pc-stat-label">LOTO</div></div>
               </div>
-              <div className="pc-bar-wrap">
-                <div className="pc-bar" style={{width:pct+'%'}}/>
-              </div>
-              <div style={{display:'flex',justifyContent:'flex-end',marginTop:12}}>
-                <button className="btn btn-red btn-xs" onClick={e=>{e.stopPropagation();if(confirm('Delete project?'))onDelete(p.id);}}>Delete</button>
+              <div className="pc-bar-wrap"><div className="pc-bar" style={{width:pct+'%'}}/></div>
+              <div style={{display:'flex',justifyContent:'flex-end',marginTop:10}}>
+                <button className="btn btn-red btn-xs" onClick={e=>{e.stopPropagation();if(confirm('Delete?'))onDelete(p.id);}}>Delete</button>
               </div>
             </div>
           );
         })}
       </div>
-      {newModal && <NewProjectModal onSave={createProject} onClose={()=>setNewModal(false)}/>}
+      {newM&&<NewProjectModal onSave={create} onClose={()=>setNewM(false)}/>}
     </div>
   );
 }
 
-// ─── App Root ─────────────────────────────────────────────────────────────────
-function App() {
-  const [data, setData] = useState(loadData);
-  const [activeId, setActiveId] = useState(null);
-  const { toasts, toast } = useToast();
+// ─── App Root ──────────────────────────────────────────────────────────────────
+function App(){
+  const[data,setData]=useState(loadData);
+  const[activeId,setActiveId]=useState(null);
+  const{toasts,toast}=useToast();
+  useEffect(()=>saveData(data),[data]);
+  const active=data.projects.find(p=>p.id===activeId);
+  function setProjects(fn){setData(d=>({...d,projects:typeof fn==='function'?fn(d.projects):fn}));}
+  function createProject(p){setProjects(ps=>[{...p,id:uid()},...ps]);setActiveId(p.id);}
+  function updateProject(p){setProjects(ps=>ps.map(x=>x.id===p.id?p:x));}
+  function deleteProject(id){setProjects(ps=>ps.filter(p=>p.id!==id));if(activeId===id)setActiveId(null);}
 
-  useEffect(() => { saveData(data); }, [data]);
-
-  const activeProject = data.projects.find(p=>p.id===activeId);
-
-  function setProjects(fn) {
-    setData(d => ({...d, projects: typeof fn==='function'?fn(d.projects):fn}));
-  }
-
-  function createProject(p) { setProjects(ps=>[p,...ps]); setActiveId(p.id); }
-  function updateProject(p) { setProjects(ps=>ps.map(x=>x.id===p.id?p:x)); }
-  function deleteProject(id) { setProjects(ps=>ps.filter(p=>p.id!==id)); if(activeId===id)setActiveId(null); }
-
-  return (
+  return(
     <div className="app">
       <div className="topbar">
-        <div className="topbar-logo" style={{cursor:'pointer'}} onClick={()=>setActiveId(null)}>
-          ⚡ WireFlow <span>Point-to-Point Electrical Tracker</span>
-        </div>
-        {activeProject && (
-          <div style={{fontSize:13,color:'#8b949e'}}>
-            {activeProject.name}
+        <div className="logo" onClick={()=>setActiveId(null)}>
+          <div className="logo-icon"><span className="logo-bolt">⚡</span></div>
+          <div>
+            <div className="logo-text">WIREFLOW</div>
+            <div className="logo-sub">Electrical Point-to-Point Tracker</div>
           </div>
-        )}
+        </div>
+        {active&&<div style={{fontSize:13,color:'#8b949e',marginLeft:8}}>/ {active.name}</div>}
         <div className="topbar-right">
-          <span style={{fontSize:12,color:'#6e7681'}}>v1.0 · localStorage</span>
+          <span style={{fontSize:11,color:'#6e7681'}}>v2.0</span>
         </div>
       </div>
 
-      {activeProject ? (
-        <ProjectEditor
-          project={activeProject}
-          onUpdate={updateProject}
-          onBack={()=>setActiveId(null)}
-          toast={toast}/>
-      ) : (
-        <HomeScreen
-          projects={data.projects}
-          onOpen={setActiveId}
-          onCreate={createProject}
-          onDelete={deleteProject}
-          toast={toast}/>
+      {active?(
+        <ProjectEditor project={active} onUpdate={updateProject} onBack={()=>setActiveId(null)} toast={toast}/>
+      ):(
+        <HomeScreen projects={data.projects} onOpen={setActiveId} onCreate={createProject} onDelete={deleteProject} toast={toast}/>
       )}
-
       <ToastList toasts={toasts}/>
     </div>
   );

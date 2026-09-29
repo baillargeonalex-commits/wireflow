@@ -1,0 +1,1226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>WireFlow — Electrical Point-to-Point Tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<style>
+:root {
+  --bg0: #080c12; --bg1: #0d1117; --bg2: #161b22; --bg3: #21262d;
+  --border: #30363d; --border2: #444c56;
+  --text: #e6edf3; --text2: #8b949e; --text3: #6e7681;
+  --blue: #58a6ff; --green: #3fb950; --yellow: #d29922;
+  --orange: #f0883e; --red: #f85149; --purple: #bc8cff;
+  --cyan: #39d0d8; --pink: #f778ba;
+  --accent: #1f6feb; --accent2: #0d419d;
+  --s0-dot: #4a5568; --s0-bg: #1a1f27;
+  font-family: 'Rajdhani', sans-serif;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg0); color: var(--text); font-family: 'Rajdhani', sans-serif; height: 100vh; overflow: hidden; }
+code, .mono { font-family: 'JetBrains Mono', monospace; }
+
+/* Scrollbars */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--bg1); }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+
+/* Buttons */
+.btn { display:inline-flex; align-items:center; gap:6px; padding:7px 14px; border-radius:6px; border:1px solid var(--border); background:var(--bg3); color:var(--text); font-family:'Rajdhani',sans-serif; font-size:14px; font-weight:600; cursor:pointer; transition:all .15s; white-space:nowrap; }
+.btn:hover { border-color:var(--border2); background:var(--bg2); }
+.btn-primary { background:var(--accent); border-color:var(--accent); color:#fff; }
+.btn-primary:hover { background:#388bfd; border-color:#388bfd; }
+.btn-green { background:#1a3a20; border-color:var(--green); color:var(--green); }
+.btn-green:hover { background:#224a28; }
+.btn-red { background:#3a1a1a; border-color:var(--red); color:var(--red); }
+.btn-red:hover { background:#4a2020; }
+.btn-yellow { background:#3a2a00; border-color:var(--yellow); color:var(--yellow); }
+.btn-yellow:hover { background:#4a3800; }
+.btn-sm { padding:4px 10px; font-size:13px; }
+.btn-xs { padding:2px 8px; font-size:12px; }
+
+/* Inputs */
+input, select, textarea { background:var(--bg1); border:1px solid var(--border); color:var(--text); padding:7px 10px; border-radius:6px; font-family:'Rajdhani',sans-serif; font-size:14px; width:100%; }
+input:focus, select:focus, textarea:focus { outline:none; border-color:var(--blue); }
+label { font-size:13px; color:var(--text2); margin-bottom:3px; display:block; font-weight:600; letter-spacing:.03em; }
+
+/* Layout */
+.app { display:flex; flex-direction:column; height:100vh; }
+.topbar { display:flex; align-items:center; gap:12px; padding:10px 16px; background:var(--bg1); border-bottom:1px solid var(--border); flex-shrink:0; }
+.topbar-logo { font-size:20px; font-weight:700; color:var(--cyan); letter-spacing:.05em; }
+.topbar-logo span { color:var(--text2); font-weight:400; font-size:14px; margin-left:8px; }
+.topbar-right { margin-left:auto; display:flex; gap:8px; align-items:center; }
+
+/* Home screen */
+.home { flex:1; overflow-y:auto; padding:32px; }
+.home-header { display:flex; align-items:center; gap:16px; margin-bottom:32px; }
+.home-title { font-size:28px; font-weight:700; color:var(--text); }
+.project-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:16px; }
+.project-card { background:var(--bg2); border:1px solid var(--border); border-radius:10px; padding:20px; cursor:pointer; transition:all .15s; }
+.project-card:hover { border-color:var(--blue); transform:translateY(-2px); }
+.pc-name { font-size:18px; font-weight:700; color:var(--text); margin-bottom:4px; }
+.pc-meta { font-size:13px; color:var(--text2); margin-bottom:16px; }
+.pc-stats { display:flex; gap:20px; margin-bottom:12px; }
+.pc-stat { text-align:center; }
+.pc-stat-val { font-size:20px; font-weight:700; color:var(--blue); font-family:'JetBrains Mono',monospace; }
+.pc-stat-label { font-size:11px; color:var(--text3); text-transform:uppercase; letter-spacing:.05em; }
+.pc-bar-wrap { background:var(--bg0); border-radius:4px; height:6px; overflow:hidden; }
+.pc-bar { height:100%; background:linear-gradient(90deg, var(--green), var(--cyan)); border-radius:4px; transition:width .3s; }
+.new-project-card { background:var(--bg1); border:2px dashed var(--border); border-radius:10px; padding:20px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:12px; font-size:15px; color:var(--text2); font-weight:600; transition:all .15s; }
+.new-project-card:hover { border-color:var(--blue); color:var(--blue); }
+
+/* Editor layout */
+.editor { display:flex; flex-direction:column; flex:1; overflow:hidden; }
+.editor-bar { display:flex; align-items:center; gap:10px; padding:8px 16px; background:var(--bg1); border-bottom:1px solid var(--border); flex-shrink:0; }
+.editor-bar-title { font-size:16px; font-weight:700; color:var(--text); }
+.editor-bar-site { font-size:13px; color:var(--text2); }
+.view-toggle { display:flex; background:var(--bg0); border:1px solid var(--border); border-radius:6px; overflow:hidden; }
+.view-btn { padding:5px 12px; font-size:13px; font-weight:600; font-family:'Rajdhani',sans-serif; cursor:pointer; border:none; background:none; color:var(--text2); transition:all .15s; }
+.view-btn.active { background:var(--bg3); color:var(--text); }
+
+.editor-body { display:flex; flex:1; overflow:hidden; }
+
+/* One-line canvas */
+.canvas-wrap { position:relative; overflow:hidden; background:var(--bg0); }
+.canvas-wrap.full { flex:1; }
+.canvas-wrap.half { width:50%; border-right:1px solid var(--border); }
+svg.one-line { width:100%; height:100%; cursor:grab; }
+svg.one-line:active { cursor:grabbing; }
+.canvas-controls { position:absolute; top:12px; right:12px; display:flex; flex-direction:column; gap:6px; }
+.canvas-btn { width:32px; height:32px; background:var(--bg2); border:1px solid var(--border); border-radius:6px; color:var(--text); font-size:16px; cursor:pointer; display:flex; align-items:center; justify-content:center; }
+.canvas-btn:hover { border-color:var(--blue); color:var(--blue); }
+.canvas-hint { position:absolute; bottom:12px; left:12px; font-size:12px; color:var(--text3); }
+
+/* Tracker panel */
+.tracker { display:flex; flex-direction:column; overflow:hidden; }
+.tracker.full { flex:1; }
+.tracker.half { width:50%; }
+
+/* KPI strip */
+.kpi-strip { display:flex; gap:0; border-bottom:1px solid var(--border); flex-shrink:0; }
+.kpi { flex:1; padding:10px 14px; border-right:1px solid var(--border); text-align:center; }
+.kpi:last-child { border-right:none; }
+.kpi-val { font-size:22px; font-weight:700; font-family:'JetBrains Mono',monospace; color:var(--blue); }
+.kpi-label { font-size:11px; color:var(--text3); text-transform:uppercase; letter-spacing:.05em; }
+
+/* Cable grid */
+.cable-grid-wrap { flex:1; overflow:auto; }
+.cable-grid { width:100%; border-collapse:collapse; }
+.cable-grid th { position:sticky; top:0; background:var(--bg2); padding:8px 12px; text-align:left; font-size:12px; color:var(--text2); font-weight:600; letter-spacing:.05em; border-bottom:1px solid var(--border); white-space:nowrap; z-index:10; }
+.cable-grid td { padding:8px 12px; font-size:13px; border-bottom:1px solid var(--bg2); white-space:nowrap; }
+.cable-grid tr:hover td { background:var(--bg2); }
+.cable-grid tr.selected td { background:var(--bg3); }
+.tag { font-family:'JetBrains Mono',monospace; font-size:12px; background:var(--bg3); padding:2px 6px; border-radius:4px; color:var(--text2); }
+.step-dots { display:flex; gap:3px; }
+.step-dot { width:10px; height:10px; border-radius:50%; }
+
+/* Status badges */
+.badge { display:inline-flex; align-items:center; gap:5px; padding:2px 8px; border-radius:12px; font-size:12px; font-weight:600; }
+.badge-pending   { background:var(--s0-bg); color:var(--text2); }
+.badge-partial   { background:#3a2a00; color:var(--yellow); }
+.badge-half      { background:#3a1a00; color:var(--orange); }
+.badge-mostly    { background:#003a3a; color:var(--cyan); }
+.badge-complete  { background:#003a10; color:var(--green); }
+.badge-submitted { background:#2a2a00; color:var(--yellow); }
+.badge-approved  { background:#002a10; color:var(--green); }
+.badge-rejected  { background:#2a0000; color:var(--red); }
+
+/* Cable detail */
+.cable-detail { background:var(--bg1); border-top:1px solid var(--border); flex-shrink:0; overflow-y:auto; max-height:45%; }
+.cd-header { display:flex; align-items:center; gap:10px; padding:12px 16px; border-bottom:1px solid var(--border); background:var(--bg2); }
+.cd-tag { font-size:18px; font-weight:700; color:var(--cyan); font-family:'JetBrains Mono',monospace; }
+.cd-desc { font-size:13px; color:var(--text2); }
+.cd-steps { display:grid; grid-template-columns:repeat(5,1fr); gap:0; }
+.cd-step { padding:10px 12px; border-right:1px solid var(--border); border-bottom:1px solid var(--border); cursor:pointer; transition:background .1s; }
+.cd-step:hover { background:var(--bg3); }
+.cd-step.disabled { opacity:.4; cursor:default; }
+.cd-step-icon { font-size:16px; margin-bottom:4px; }
+.cd-step-label { font-size:11px; color:var(--text2); margin-bottom:6px; line-height:1.3; }
+.cd-step-status { font-size:11px; font-weight:700; }
+.cd-step.st-approved .cd-step-status { color:var(--green); }
+.cd-step.st-submitted .cd-step-status { color:var(--yellow); }
+.cd-step.st-rejected .cd-step-status { color:var(--red); }
+.cd-step.st-pending .cd-step-status { color:var(--text3); }
+
+/* Modals */
+.modal-backdrop { position:fixed; inset:0; background:rgba(0,0,0,.7); z-index:1000; display:flex; align-items:center; justify-content:center; }
+.modal { background:var(--bg2); border:1px solid var(--border); border-radius:12px; padding:24px; min-width:400px; max-width:90vw; max-height:90vh; overflow-y:auto; }
+.modal-title { font-size:18px; font-weight:700; color:var(--text); margin-bottom:20px; }
+.modal-footer { display:flex; gap:8px; justify-content:flex-end; margin-top:20px; padding-top:16px; border-top:1px solid var(--border); }
+.form-row { margin-bottom:14px; }
+.form-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+.form-grid-3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:14px; }
+
+/* Step modal */
+.step-modal { min-width:520px; }
+.step-modal .step-header { display:flex; align-items:center; gap:12px; padding:16px; background:var(--bg3); border-radius:8px; margin-bottom:20px; }
+.step-modal .step-icon { font-size:28px; }
+.step-modal .step-name { font-size:16px; font-weight:700; }
+.step-modal .step-cable { font-size:13px; color:var(--text2); }
+.photo-upload { border:2px dashed var(--border); border-radius:8px; padding:20px; text-align:center; cursor:pointer; color:var(--text2); font-size:14px; transition:all .15s; }
+.photo-upload:hover { border-color:var(--blue); color:var(--blue); }
+.photo-list { display:flex; gap:8px; flex-wrap:wrap; margin-top:8px; }
+.photo-thumb { width:80px; height:80px; border-radius:6px; background:var(--bg3); border:1px solid var(--border); display:flex; align-items:center; justify-content:center; font-size:24px; position:relative; cursor:pointer; overflow:hidden; }
+.photo-thumb img { width:100%; height:100%; object-fit:cover; }
+.photo-remove { position:absolute; top:2px; right:2px; background:rgba(0,0,0,.7); color:#fff; border:none; border-radius:50%; width:18px; height:18px; font-size:12px; cursor:pointer; display:flex; align-items:center; justify-content:center; }
+.test-result-input { background:var(--bg1); border:1px solid var(--border); color:var(--text); padding:8px 12px; border-radius:6px; font-family:'JetBrains Mono',monospace; font-size:16px; text-align:center; }
+
+/* LOTO badge */
+.loto-badge { display:inline-flex; align-items:center; gap:6px; padding:4px 10px; background:#2a0010; border:1px solid #ff4488; border-radius:6px; font-size:12px; color:#ff88aa; font-weight:700; }
+
+/* Toast */
+.toast-wrap { position:fixed; bottom:24px; right:24px; display:flex; flex-direction:column; gap:8px; z-index:9999; }
+.toast { background:var(--bg3); border:1px solid var(--border); border-radius:8px; padding:12px 16px; font-size:14px; font-weight:600; min-width:260px; animation:slideIn .2s ease; }
+.toast.success { border-color:var(--green); color:var(--green); }
+.toast.error { border-color:var(--red); color:var(--red); }
+.toast.info { border-color:var(--blue); color:var(--blue); }
+@keyframes slideIn { from { transform:translateX(100px); opacity:0; } to { transform:none; opacity:1; } }
+
+/* Drag zone */
+.drag-over { border-color:var(--blue) !important; background:var(--bg3) !important; }
+
+/* Add equipment modal side labels */
+.eq-type-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:16px; }
+.eq-type-btn { padding:8px; border:1px solid var(--border); border-radius:6px; cursor:pointer; text-align:center; font-size:12px; font-weight:600; background:var(--bg1); color:var(--text2); transition:all .15s; }
+.eq-type-btn:hover, .eq-type-btn.active { border-color:var(--blue); color:var(--blue); background:var(--bg3); }
+
+/* Node tooltip */
+.node-tooltip { position:absolute; background:var(--bg2); border:1px solid var(--border); border-radius:6px; padding:8px 12px; font-size:12px; pointer-events:none; z-index:100; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useEffect, useRef, useCallback, useMemo } = React;
+
+// ─── Constants ─────────────────────────────────────────────────────────────
+const EQ_TYPES = {
+  UTILITY: {label:'Utility / Grid',   icon:'⚡', color:'#1a0a2e', border:'#a855f7'},
+  TX:      {label:'Transformer',      icon:'↯',  color:'#0a1a2e', border:'#3b82f6'},
+  GEN:     {label:'Generator',        icon:'⚙',  color:'#1a1000', border:'#f59e0b'},
+  MV_SW:   {label:'MV Switchgear',    icon:'⊟',  color:'#0a2a1a', border:'#22c55e'},
+  LV_SW:   {label:'LV Switchgear',    icon:'⊠',  color:'#0a1a0a', border:'#86efac'},
+  ATS:     {label:'ATS',              icon:'⇌',  color:'#1a1a00', border:'#eab308'},
+  UPS:     {label:'UPS',              icon:'🔋', color:'#001a10', border:'#4ade80'},
+  PDU:     {label:'PDU',              icon:'⊞',  color:'#1a0a00', border:'#fb923c'},
+  MCC:     {label:'MCC',              icon:'⊡',  color:'#001020', border:'#60a5fa'},
+  PQM:     {label:'PQM / Meter',      icon:'◈',  color:'#1a001a', border:'#c084fc'},
+  BUSDUCT: {label:'Bus Duct',         icon:'═',  color:'#0a0a1a', border:'#94a3b8'},
+  LOAD:    {label:'IT Load / Rack',   icon:'▦',  color:'#001a1a', border:'#22d3ee'},
+  PANEL:   {label:'Panel Board',      icon:'▤',  color:'#0a1010', border:'#6ee7b7'},
+  OTHER:   {label:'Other Equipment',  icon:'◉',  color:'#1a1a1a', border:'#94a3b8'},
+};
+
+const STEPS = [
+  {id:'pulled',     label:'Cable Pulled & Tagged',  icon:'📦', loto:false, testKey:null},
+  {id:'src_term',   label:'Source Terminated',      icon:'🔧', loto:false, testKey:null},
+  {id:'src_torque', label:'Source Torqued',         icon:'🔩', loto:false, testKey:null},
+  {id:'dst_term',   label:'Dest Terminated',        icon:'🔧', loto:false, testKey:null},
+  {id:'dst_torque', label:'Dest Torqued',           icon:'🔩', loto:false, testKey:null},
+  {id:'megger',     label:'Megger / IR Test',       icon:'⚡', loto:false, testKey:'megger_result', unit:'MΩ'},
+  {id:'continuity', label:'Continuity Test',        icon:'🔄', loto:false, testKey:'continuity_result'},
+  {id:'hipot',      label:'Hi-Pot Test',            icon:'⚡', loto:false, testKey:'hipot_result', optional:true},
+  {id:'loto',       label:'LOTO Applied',           icon:'🔒', loto:true,  testKey:null},
+  {id:'energized',  label:'Energized',              icon:'✅', loto:false, testKey:null, final:true},
+];
+
+const STEP_STATUS = ['pending','submitted','approved','rejected'];
+const stepColor = s => s==='approved'?'#3fb950':s==='submitted'?'#d29922':s==='rejected'?'#f85149':'#4a5568';
+
+// ─── Utils ──────────────────────────────────────────────────────────────────
+const uid = () => Math.random().toString(36).slice(2,9);
+const LS_KEY = 'wireflow_v1';
+
+function loadData() {
+  try { return JSON.parse(localStorage.getItem(LS_KEY)) || { projects:[] }; } catch { return { projects:[] }; }
+}
+function saveData(data) {
+  try { localStorage.setItem(LS_KEY, JSON.stringify(data)); } catch {}
+}
+
+function cableProgress(cable) {
+  const total = STEPS.length;
+  const done = STEPS.filter(s => cable.steps?.[s.id]?.status === 'approved').length;
+  return { done, total, pct: Math.round((done/total)*100) };
+}
+
+function autoLayout(equipment) {
+  const byId = {};
+  equipment.forEach(e => { byId[e.id] = e; });
+  const roots = equipment.filter(e => !e.parentId || !byId[e.parentId]);
+  const childMap = {};
+  equipment.forEach(e => {
+    if (e.parentId && byId[e.parentId]) {
+      if (!childMap[e.parentId]) childMap[e.parentId] = [];
+      childMap[e.parentId].push(e.id);
+    }
+  });
+  const pos = {};
+  const HGAP = 180, VGAP = 130;
+  function getWidth(id) {
+    const kids = childMap[id] || [];
+    if (!kids.length) return 1;
+    return kids.reduce((a,k) => a + getWidth(k), 0);
+  }
+  function layout(id, depth, xOffset) {
+    const w = getWidth(id);
+    pos[id] = { x: (xOffset + w/2) * HGAP, y: depth * VGAP + 80 };
+    const kids = childMap[id] || [];
+    let cx = xOffset;
+    kids.forEach(kid => {
+      const kw = getWidth(kid);
+      layout(kid, depth+1, cx);
+      cx += kw;
+    });
+  }
+  let xOff = 0;
+  roots.forEach(r => { layout(r.id, 0, xOff); xOff += getWidth(r.id); });
+  return pos;
+}
+
+// ─── Toast ──────────────────────────────────────────────────────────────────
+function useToast() {
+  const [toasts, setToasts] = useState([]);
+  const toast = useCallback((msg, type='info') => {
+    const id = uid();
+    setToasts(t => [...t, {id, msg, type}]);
+    setTimeout(() => setToasts(t => t.filter(x=>x.id!==id)), 3000);
+  }, []);
+  return { toasts, toast };
+}
+
+function ToastList({ toasts }) {
+  return <div className="toast-wrap">{toasts.map(t => <div key={t.id} className={`toast ${t.type}`}>{t.msg}</div>)}</div>;
+}
+
+// ─── Excel helpers ───────────────────────────────────────────────────────────
+function downloadTemplate() {
+  const wb = XLSX.utils.book_new();
+  const ins = [
+    ['WireFlow — Import Template'],[''],
+    ['EQUIPMENT sheet columns:'],
+    ['ID','Tag','Type','Label','Zone/Room','Parent ID','X','Y'],
+    ['eq1','TX-01','TX','Main Transformer','Switchroom','','',''],
+    ['eq2','MDB-01','LV_SW','Main Distribution Board','Switchroom','eq1','',''],
+    [''],['Valid types: '+Object.keys(EQ_TYPES).join(', ')],[''],
+    ['CABLES sheet columns:'],
+    ['Cable Tag','Circuit #','Cable Type','Voltage','Conductor Count','Conduit ID','From ID','To ID','Zone/Room','Sub Trade','Notes'],
+    ['C-001','CB-001','XLPE 4/C #2 AWG','600V','4','CDT-01','eq1','eq2','Switchroom','Alpha Electric',''],
+  ];
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(ins), 'Instructions');
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([
+    ['ID','Tag','Type','Label','Zone/Room','Parent ID','X','Y'],
+  ]), 'Equipment');
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([
+    ['Cable Tag','Circuit #','Cable Type','Voltage','Conductor Count','Conduit ID','From ID','To ID','Zone/Room','Sub Trade','Notes'],
+  ]), 'Cables');
+  XLSX.writeFile(wb, 'wireflow_template.xlsx');
+}
+
+function exportProject(project) {
+  const wb = XLSX.utils.book_new();
+  // Equipment
+  const eqRows = [['ID','Tag','Type','Label','Zone/Room','Parent ID','X','Y'],
+    ...(project.equipment||[]).map(e => [e.id,e.tag,e.type,e.label,e.zone||'',e.parentId||'',e.x||'',e.y||''])
+  ];
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(eqRows), 'Equipment');
+  // Cables
+  const cableRows = [['Cable Tag','Circuit #','Cable Type','Voltage','Conductor Count','Conduit ID','From ID','To ID','Zone/Room','Sub Trade','Notes'],
+    ...(project.cables||[]).map(c => [c.tag,c.circuit||'',c.cableType||'',c.voltage||'',c.conductors||'',c.conduit||'',c.fromId,c.toId,c.zone||'',c.subTrade||'',c.notes||''])
+  ];
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(cableRows), 'Cables');
+  // Progress
+  const progRows = [['Cable Tag',...STEPS.map(s=>s.label),'Megger (MΩ)','Continuity','Hi-Pot','LOTO Lock#','LOTO Worker','% Complete'],
+    ...(project.cables||[]).map(c => {
+      const steps = c.steps||{};
+      const row = [c.tag, ...STEPS.map(s => steps[s.id]?.status||'pending')];
+      row.push(steps.megger?.megger_result||'', steps.continuity?.continuity_result||'', steps.hipot?.hipot_result||'');
+      row.push(steps.loto?.lockNumber||'', steps.loto?.workerName||'');
+      row.push(cableProgress(c).pct+'%');
+      return row;
+    })
+  ];
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(progRows), 'Progress');
+  XLSX.writeFile(wb, `${project.name.replace(/\s+/g,'_')}_wireflow.xlsx`);
+}
+
+function parseExcel(buffer) {
+  const wb = XLSX.read(buffer, {type:'array'});
+  const result = { equipment:[], cables:[] };
+  const eqSheet = wb.Sheets['Equipment'];
+  if (eqSheet) {
+    const rows = XLSX.utils.sheet_to_json(eqSheet, {header:1}).slice(1).filter(r=>r[0]);
+    result.equipment = rows.map(r => ({
+      id: String(r[0]||uid()), tag:String(r[1]||''), type:String(r[2]||'OTHER'),
+      label:String(r[3]||''), zone:String(r[4]||''), parentId:String(r[5]||''),
+      x: r[6]?Number(r[6]):null, y:r[7]?Number(r[7]):null, steps:{}
+    }));
+  }
+  const cSheet = wb.Sheets['Cables'];
+  if (cSheet) {
+    const rows = XLSX.utils.sheet_to_json(cSheet, {header:1}).slice(1).filter(r=>r[0]);
+    result.cables = rows.map(r => ({
+      id:uid(), tag:String(r[0]||''), circuit:String(r[1]||''), cableType:String(r[2]||''),
+      voltage:String(r[3]||''), conductors:String(r[4]||''), conduit:String(r[5]||''),
+      fromId:String(r[6]||''), toId:String(r[7]||''), zone:String(r[8]||''),
+      subTrade:String(r[9]||''), notes:String(r[10]||''), steps:{}
+    }));
+  }
+  const progSheet = wb.Sheets['Progress'];
+  if (progSheet && result.cables.length) {
+    const rows = XLSX.utils.sheet_to_json(progSheet, {header:1}).slice(1);
+    rows.forEach(r => {
+      const cable = result.cables.find(c => c.tag === String(r[0]||''));
+      if (!cable) return;
+      STEPS.forEach((s,i) => {
+        const val = String(r[i+1]||'pending');
+        if (!cable.steps[s.id]) cable.steps[s.id] = {};
+        cable.steps[s.id].status = STEP_STATUS.includes(val)?val:'pending';
+      });
+      if (cable.steps.megger)     cable.steps.megger.megger_result = String(r[STEPS.length+1]||'');
+      if (cable.steps.continuity) cable.steps.continuity.continuity_result = String(r[STEPS.length+2]||'');
+      if (cable.steps.hipot)      cable.steps.hipot.hipot_result = String(r[STEPS.length+3]||'');
+      if (cable.steps.loto) {
+        cable.steps.loto.lockNumber = String(r[STEPS.length+4]||'');
+        cable.steps.loto.workerName = String(r[STEPS.length+5]||'');
+      }
+    });
+  }
+  return result;
+}
+
+// ─── One-Line Diagram ────────────────────────────────────────────────────────
+function OneLineCanvas({ project, selectedCable, onSelectCable, viewMode }) {
+  const svgRef = useRef(null);
+  const [vb, setVb] = useState({x:0,y:0,scale:1});
+  const [dragging, setDragging] = useState(null); // null | {type:'pan',sx,sy,ox,oy} | {type:'node',id,sx,sy,ox,oy}
+  const [positions, setPositions] = useState({});
+  const [tooltip, setTooltip] = useState(null);
+
+  const equipment = project.equipment||[];
+  const cables = project.cables||[];
+
+  // Compute or restore positions
+  useEffect(() => {
+    const auto = autoLayout(equipment);
+    const pos = {};
+    equipment.forEach(e => {
+      if (e.x != null && e.y != null) pos[e.id] = {x:e.x, y:e.y};
+      else pos[e.id] = auto[e.id] || {x:100, y:100};
+    });
+    setPositions(pos);
+  }, [equipment]);
+
+  // Cable bundles: group cables by (fromId,toId) pair (order-normalized)
+  const bundles = useMemo(() => {
+    const map = {};
+    cables.forEach(c => {
+      const key = [c.fromId,c.toId].sort().join('|');
+      if (!map[key]) map[key] = { fromId:c.fromId, toId:c.toId, cables:[] };
+      map[key].cables.push(c);
+    });
+    return Object.values(map);
+  }, [cables]);
+
+  function bundleColor(bundleCables) {
+    const progs = bundleCables.map(c => cableProgress(c).pct);
+    const avg = progs.reduce((a,b)=>a+b,0)/progs.length;
+    if (avg === 0) return '#4a5568';
+    if (avg < 30) return '#d29922';
+    if (avg < 60) return '#f0883e';
+    if (avg < 100) return '#39d0d8';
+    return '#3fb950';
+  }
+
+  const NODE_W = 120, NODE_H = 56;
+
+  function svgPoint(e) {
+    const svg = svgRef.current;
+    if (!svg) return {x:0,y:0};
+    const rect = svg.getBoundingClientRect();
+    return {
+      x: (e.clientX - rect.left) / vb.scale + vb.x,
+      y: (e.clientY - rect.top)  / vb.scale + vb.y,
+    };
+  }
+
+  function onWheel(e) {
+    e.preventDefault();
+    const rect = svgRef.current.getBoundingClientRect();
+    const mouseX = e.clientX - rect.left;
+    const mouseY = e.clientY - rect.top;
+    const factor = e.deltaY > 0 ? 0.9 : 1.1;
+    setVb(v => {
+      const newScale = Math.min(4, Math.max(0.1, v.scale * factor));
+      const wx = mouseX / v.scale + v.x;
+      const wy = mouseY / v.scale + v.y;
+      return { scale:newScale, x: wx - mouseX/newScale, y: wy - mouseY/newScale };
+    });
+  }
+
+  function onMouseDown(e) {
+    if (e.button !== 0) return;
+    const pt = svgPoint(e);
+    // Check if clicking a node
+    for (const eq of equipment) {
+      const pos = positions[eq.id];
+      if (!pos) continue;
+      if (pt.x >= pos.x && pt.x <= pos.x+NODE_W && pt.y >= pos.y && pt.y <= pos.y+NODE_H) {
+        setDragging({type:'node', id:eq.id, sx:e.clientX, sy:e.clientY, ox:pos.x, oy:pos.y});
+        return;
+      }
+    }
+    setDragging({type:'pan', sx:e.clientX, sy:e.clientY, ox:vb.x, oy:vb.y});
+  }
+
+  function onMouseMove(e) {
+    if (!dragging) return;
+    const dx = e.clientX - dragging.sx;
+    const dy = e.clientY - dragging.sy;
+    if (dragging.type === 'pan') {
+      setVb(v => ({...v, x: dragging.ox - dx/v.scale, y: dragging.oy - dy/v.scale}));
+    } else {
+      setPositions(p => ({...p, [dragging.id]: {x: dragging.ox + dx/vb.scale, y: dragging.oy + dy/vb.scale}}));
+    }
+  }
+
+  function onMouseUp() { setDragging(null); }
+
+  function fitAll() {
+    const pts = Object.values(positions);
+    if (!pts.length) return;
+    const xs = pts.map(p=>p.x); const ys = pts.map(p=>p.y);
+    const minX=Math.min(...xs)-20, minY=Math.min(...ys)-20;
+    const maxX=Math.max(...xs)+NODE_W+20, maxY=Math.max(...ys)+NODE_H+20;
+    const svg = svgRef.current;
+    if (!svg) return;
+    const rect = svg.getBoundingClientRect();
+    const scaleX = rect.width/(maxX-minX), scaleY = rect.height/(maxY-minY);
+    const scale = Math.min(scaleX, scaleY, 2);
+    setVb({x:minX, y:minY, scale});
+  }
+
+  const svg = svgRef.current;
+  const W = svg?.clientWidth||800, H = svg?.clientHeight||600;
+  const viewBox = `${vb.x} ${vb.y} ${W/vb.scale} ${H/vb.scale}`;
+
+  return (
+    <div className="canvas-wrap" style={{flex:1}}>
+      <svg ref={svgRef} className="one-line" viewBox={viewBox}
+        onWheel={onWheel} onMouseDown={onMouseDown} onMouseMove={onMouseMove} onMouseUp={onMouseUp}
+        onMouseLeave={onMouseUp}>
+        <defs>
+          <marker id="arr" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+            <path d="M0,0 L0,6 L8,3 z" fill="#4a5568"/>
+          </marker>
+          <marker id="arr-green" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+            <path d="M0,0 L0,6 L8,3 z" fill="#3fb950"/>
+          </marker>
+        </defs>
+
+        {/* Cables / bundles */}
+        {bundles.map((bundle, i) => {
+          const fp = positions[bundle.fromId];
+          const tp = positions[bundle.toId];
+          if (!fp || !tp) return null;
+          const x1 = fp.x + NODE_W/2, y1 = fp.y + NODE_H;
+          const x2 = tp.x + NODE_W/2, y2 = tp.y;
+          const color = bundleColor(bundle.cables);
+          const mx = (x1+x2)/2, my = (y1+y2)/2;
+          const isSelected = bundle.cables.some(c => c.id === selectedCable?.id);
+          return (
+            <g key={i} style={{cursor:'pointer'}} onClick={() => onSelectCable(bundle.cables[0])}>
+              <line x1={x1} y1={y1} x2={x2} y2={y2}
+                stroke={isSelected?'#58a6ff':color} strokeWidth={isSelected?3:2}
+                strokeDasharray={bundle.cables[0].steps?.pulled?.status==='approved'?'none':'6,4'}
+                markerEnd={`url(#${color==='#3fb950'?'arr-green':'arr'})`}/>
+              {bundle.cables.length > 1 && (
+                <g>
+                  <circle cx={mx} cy={my} r={10} fill={color} opacity={.9}/>
+                  <text x={mx} y={my+4} textAnchor="middle" fontSize="9" fill="#fff" fontWeight="700">{bundle.cables.length}</text>
+                </g>
+              )}
+              {bundle.cables.length === 1 && (
+                <text x={mx+8} y={my-4} fontSize="9" fill={color} fontFamily="JetBrains Mono,monospace">{bundle.cables[0].tag}</text>
+              )}
+            </g>
+          );
+        })}
+
+        {/* Equipment nodes */}
+        {equipment.map(eq => {
+          const pos = positions[eq.id];
+          if (!pos) return null;
+          const eqt = EQ_TYPES[eq.type] || EQ_TYPES.OTHER;
+          const isDraggingThis = dragging?.type==='node' && dragging.id===eq.id;
+          return (
+            <g key={eq.id} transform={`translate(${pos.x},${pos.y})`}
+              onMouseEnter={e => setTooltip({eq, x:e.clientX, y:e.clientY})}
+              onMouseLeave={() => setTooltip(null)}>
+              <rect x={0} y={0} width={NODE_W} height={NODE_H}
+                rx={6} fill={eqt.color} stroke={isDraggingThis?'#58a6ff':eqt.border} strokeWidth={isDraggingThis?2.5:1.5}
+                filter={isDraggingThis?'drop-shadow(0 0 8px rgba(88,166,255,0.4))':''}/>
+              <text x={NODE_W/2} y={18} textAnchor="middle" fontSize="13" fill={eqt.border}>{eqt.icon}</text>
+              <text x={NODE_W/2} y={30} textAnchor="middle" fontSize="9" fill="#e6edf3" fontFamily="Rajdhani,sans-serif" fontWeight="600">{eq.tag}</text>
+              <text x={NODE_W/2} y={42} textAnchor="middle" fontSize="8" fill="#8b949e" fontFamily="Rajdhani,sans-serif">
+                {eq.label.length>16?eq.label.slice(0,14)+'…':eq.label}
+              </text>
+              <text x={NODE_W/2} y={52} textAnchor="middle" fontSize="7" fill="#6e7681" fontFamily="Rajdhani,sans-serif">{eqt.label}</text>
+            </g>
+          );
+        })}
+      </svg>
+
+      <div className="canvas-controls">
+        <button className="canvas-btn" onClick={fitAll} title="Fit all">⊡</button>
+        <button className="canvas-btn" onClick={() => setVb(v=>({...v,scale:Math.min(4,v.scale*1.2)}))} title="Zoom in">+</button>
+        <button className="canvas-btn" onClick={() => setVb(v=>({...v,scale:Math.max(.1,v.scale*.8)}))} title="Zoom out">−</button>
+      </div>
+      <div className="canvas-hint">Scroll to zoom · Drag to pan · Drag node to move</div>
+
+      {tooltip && (
+        <div className="node-tooltip" style={{left:tooltip.x+12, top:tooltip.y-10, position:'fixed'}}>
+          <div style={{fontWeight:700, color:'#e6edf3'}}>{tooltip.eq.tag}</div>
+          <div style={{color:'#8b949e', fontSize:11}}>{tooltip.eq.label}</div>
+          {tooltip.eq.zone && <div style={{color:'#6e7681', fontSize:10}}>Zone: {tooltip.eq.zone}</div>}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── Step Modal ──────────────────────────────────────────────────────────────
+function StepModal({ cable, stepIndex, isSuper, onSave, onClose }) {
+  const step = STEPS[stepIndex];
+  const existing = cable.steps?.[step.id] || {};
+  const [notes, setNotes]       = useState(existing.notes||'');
+  const [testVal, setTestVal]   = useState(existing[step.testKey]||'');
+  const [lockNum, setLockNum]   = useState(existing.lockNumber||'');
+  const [worker, setWorker]     = useState(existing.workerName||'');
+  const [photos, setPhotos]     = useState(existing.photos||[]);
+  const fileRef = useRef();
+
+  const status = existing.status||'pending';
+
+  function addPhotos(files) {
+    Array.from(files).forEach(f => {
+      const reader = new FileReader();
+      reader.onload = e => setPhotos(p => [...p, {name:f.name, dataUrl:e.target.result}]);
+      reader.readAsDataURL(f);
+    });
+  }
+
+  function submit(action) {
+    const data = { status:action, notes, photos };
+    if (step.testKey) data[step.testKey] = testVal;
+    if (step.loto) { data.lockNumber = lockNum; data.workerName = worker; }
+    onSave(step.id, data);
+  }
+
+  const canApprove = isSuper;
+  const canSubmit = !isSuper;
+
+  return (
+    <div className="modal-backdrop" onClick={e=>e.target===e.currentTarget&&onClose()}>
+      <div className="modal step-modal">
+        <div className="step-header">
+          <span className="step-icon">{step.icon}</span>
+          <div>
+            <div className="step-name">{step.label}</div>
+            <div className="step-cable">Cable: <span style={{color:'#39d0d8',fontFamily:'JetBrains Mono,monospace'}}>{cable.tag}</span></div>
+          </div>
+          <div style={{marginLeft:'auto'}}>
+            <span className={`badge badge-${status}`}>● {status.toUpperCase()}</span>
+          </div>
+        </div>
+
+        {step.loto && (
+          <div className="form-grid form-row">
+            <div><label>🔒 Lock Number</label><input value={lockNum} onChange={e=>setLockNum(e.target.value)} placeholder="e.g. L-042"/></div>
+            <div><label>👷 Worker Name</label><input value={worker} onChange={e=>setWorker(e.target.value)} placeholder="Full name"/></div>
+          </div>
+        )}
+
+        {step.testKey && (
+          <div className="form-row">
+            <label>{step.unit ? `Test Result (${step.unit})` : 'Test Result'}</label>
+            <input className="test-result-input" value={testVal} onChange={e=>setTestVal(e.target.value)}
+              placeholder={step.unit?`e.g. 1000 ${step.unit}`:'PASS / FAIL'}
+              style={{textAlign:'center',fontSize:20,fontFamily:'JetBrains Mono,monospace'}}/>
+          </div>
+        )}
+
+        <div className="form-row">
+          <label>Notes</label>
+          <textarea rows={2} value={notes} onChange={e=>setNotes(e.target.value)} placeholder="Optional notes…" style={{resize:'vertical'}}/>
+        </div>
+
+        <div className="form-row">
+          <label>Photos</label>
+          <input ref={fileRef} type="file" accept="image/*" multiple style={{display:'none'}}
+            onChange={e=>addPhotos(e.target.files)}/>
+          <div className="photo-upload" onClick={()=>fileRef.current.click()}>
+            📷 Click to add photos
+          </div>
+          {photos.length > 0 && (
+            <div className="photo-list">
+              {photos.map((p,i)=>(
+                <div key={i} className="photo-thumb" title={p.name}>
+                  {p.dataUrl ? <img src={p.dataUrl} alt={p.name}/> : <span>📷</span>}
+                  <button className="photo-remove" onClick={e=>{e.stopPropagation();setPhotos(ph=>ph.filter((_,j)=>j!==i))}}>✕</button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div className="modal-footer">
+          <button className="btn" onClick={onClose}>Cancel</button>
+          {step.optional && status==='pending' && (
+            <button className="btn btn-yellow btn-sm" onClick={()=>submit('approved')}>Skip (N/A)</button>
+          )}
+          {canSubmit && status==='pending' && (
+            <button className="btn btn-primary" onClick={()=>submit('submitted')}>Submit for Approval</button>
+          )}
+          {canApprove && (status==='submitted'||status==='pending') && (
+            <>
+              <button className="btn btn-red btn-sm" onClick={()=>submit('rejected')}>Reject</button>
+              <button className="btn btn-green" onClick={()=>submit('approved')}>Approve ✓</button>
+            </>
+          )}
+          {canApprove && status==='approved' && (
+            <button className="btn btn-yellow btn-sm" onClick={()=>submit('pending')}>Revoke</button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Cable Detail ─────────────────────────────────────────────────────────────
+function CableDetail({ cable, equipment, isSuper, onUpdate }) {
+  const [stepModal, setStepModal] = useState(null);
+  const byId = {};
+  (equipment||[]).forEach(e => { byId[e.id]=e; });
+  const from = byId[cable.fromId];
+  const to   = byId[cable.toId];
+  const { done, total, pct } = cableProgress(cable);
+
+  function saveStep(stepId, data) {
+    const newCable = { ...cable, steps:{ ...(cable.steps||{}), [stepId]:{...(cable.steps?.[stepId]||{}), ...data} } };
+    onUpdate(newCable);
+    setStepModal(null);
+  }
+
+  return (
+    <div className="cable-detail">
+      <div className="cd-header">
+        <div>
+          <div className="cd-tag">{cable.tag}</div>
+          <div className="cd-desc">{cable.cableType} · {cable.voltage} · {cable.conductors} conductors</div>
+        </div>
+        <div style={{marginLeft:16}}>
+          <div style={{fontSize:12,color:'#8b949e'}}>
+            {from?.tag||cable.fromId} → {to?.tag||cable.toId}
+          </div>
+          {cable.conduit && <div style={{fontSize:11,color:'#6e7681'}}>Conduit: {cable.conduit}</div>}
+        </div>
+        <div style={{marginLeft:'auto',textAlign:'right'}}>
+          <div style={{fontSize:24,fontWeight:700,color:pct===100?'#3fb950':'#58a6ff',fontFamily:'JetBrains Mono,monospace'}}>{pct}%</div>
+          <div style={{fontSize:11,color:'#8b949e'}}>{done}/{total} steps</div>
+        </div>
+        {cable.steps?.loto?.status==='approved' && (
+          <div className="loto-badge" style={{marginLeft:12}}>🔒 LOTO · {cable.steps.loto.lockNumber}</div>
+        )}
+      </div>
+
+      <div className="cd-steps">
+        {STEPS.map((step, i) => {
+          const st = cable.steps?.[step.id] || {};
+          const status = st.status || 'pending';
+          const prevApproved = i===0 || cable.steps?.[STEPS[i-1].id]?.status==='approved';
+          const isDisabled = !isSuper && !prevApproved;
+          return (
+            <div key={step.id}
+              className={`cd-step st-${status} ${isDisabled?'disabled':''}`}
+              onClick={() => !isDisabled && setStepModal(i)}>
+              <div className="cd-step-icon">{step.icon}</div>
+              <div className="cd-step-label">{step.label}</div>
+              <div className="cd-step-status" style={{color:stepColor(status)}}>
+                {status === 'approved' ? '✓ APPROVED' :
+                 status === 'submitted' ? '⏳ SUBMITTED' :
+                 status === 'rejected' ? '✗ REJECTED' : '· PENDING'}
+              </div>
+              {step.testKey && st[step.testKey] && (
+                <div style={{fontSize:10,color:'#8b949e',marginTop:2,fontFamily:'JetBrains Mono,monospace'}}>{st[step.testKey]}</div>
+              )}
+              {step.loto && st.lockNumber && (
+                <div style={{fontSize:10,color:'#ff88aa',marginTop:2}}>🔒 {st.lockNumber}</div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      {stepModal !== null && (
+        <StepModal cable={cable} stepIndex={stepModal} isSuper={isSuper}
+          onSave={saveStep} onClose={()=>setStepModal(null)}/>
+      )}
+    </div>
+  );
+}
+
+// ─── Tracker Panel ───────────────────────────────────────────────────────────
+function TrackerPanel({ project, isSuper, onUpdate }) {
+  const [selected, setSelected] = useState(null);
+  const [filter, setFilter] = useState('');
+
+  const cables = project.cables||[];
+  const equipment = project.equipment||[];
+
+  const byId = {};
+  equipment.forEach(e => { byId[e.id]=e; });
+
+  const filtered = cables.filter(c => {
+    const q = filter.toLowerCase();
+    return !q || c.tag.toLowerCase().includes(q) || c.circuit?.toLowerCase().includes(q)
+      || c.fromId.toLowerCase().includes(q) || c.toId.toLowerCase().includes(q)
+      || byId[c.fromId]?.tag.toLowerCase().includes(q) || byId[c.toId]?.tag.toLowerCase().includes(q);
+  });
+
+  const total = cables.length;
+  const complete = cables.filter(c => cableProgress(c).pct===100).length;
+  const loto = cables.filter(c => c.steps?.loto?.status==='approved').length;
+  const avgPct = total ? Math.round(cables.reduce((a,c)=>a+cableProgress(c).pct,0)/total) : 0;
+
+  function updateCable(cable) {
+    const newCables = (project.cables||[]).map(c => c.id===cable.id?cable:c);
+    onUpdate({...project, cables:newCables});
+    setSelected(cable);
+  }
+
+  const selCable = selected ? cables.find(c=>c.id===selected.id) : null;
+
+  return (
+    <div className="tracker" style={{display:'flex',flexDirection:'column',flex:1,overflow:'hidden'}}>
+      {/* KPI */}
+      <div className="kpi-strip">
+        <div className="kpi"><div className="kpi-val">{total}</div><div className="kpi-label">Total Cables</div></div>
+        <div className="kpi"><div className="kpi-val" style={{color:'#3fb950'}}>{complete}</div><div className="kpi-label">Complete</div></div>
+        <div className="kpi"><div className="kpi-val" style={{color:'#ff88aa'}}>{loto}</div><div className="kpi-label">LOTO Active</div></div>
+        <div className="kpi"><div className="kpi-val" style={{color:'#39d0d8'}}>{avgPct}%</div><div className="kpi-label">Avg Progress</div></div>
+      </div>
+
+      {/* Filter */}
+      <div style={{padding:'8px 12px', borderBottom:'1px solid var(--border)', background:'var(--bg1)', flexShrink:0}}>
+        <input placeholder="Filter cables…" value={filter} onChange={e=>setFilter(e.target.value)}
+          style={{background:'var(--bg0)'}}/>
+      </div>
+
+      {/* Grid */}
+      <div className="cable-grid-wrap" style={{flex:selCable?'0 0 45%':'1'}}>
+        <table className="cable-grid">
+          <thead>
+            <tr>
+              <th>Cable Tag</th><th>Circuit</th><th>From</th><th>To</th>
+              <th>Type</th><th>Progress</th><th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filtered.map(c => {
+              const {pct,done,total:t} = cableProgress(c);
+              const isLOTO = c.steps?.loto?.status==='approved';
+              return (
+                <tr key={c.id} className={selCable?.id===c.id?'selected':''}
+                  onClick={()=>setSelected(c)} style={{cursor:'pointer'}}>
+                  <td><span className="tag">{c.tag}</span>{isLOTO&&<span className="loto-badge" style={{marginLeft:6,fontSize:10,padding:'1px 6px'}}>🔒</span>}</td>
+                  <td>{c.circuit}</td>
+                  <td><span className="tag">{byId[c.fromId]?.tag||c.fromId}</span></td>
+                  <td><span className="tag">{byId[c.toId]?.tag||c.toId}</span></td>
+                  <td style={{color:'#8b949e',maxWidth:120,overflow:'hidden',textOverflow:'ellipsis'}}>{c.cableType}</td>
+                  <td>
+                    <div style={{display:'flex',alignItems:'center',gap:8}}>
+                      <div style={{width:60,height:5,background:'#1a1f27',borderRadius:3,overflow:'hidden'}}>
+                        <div style={{width:pct+'%',height:'100%',background:pct===100?'#3fb950':pct>60?'#39d0d8':'#d29922',borderRadius:3}}/>
+                      </div>
+                      <span style={{fontSize:12,color:'#8b949e',fontFamily:'JetBrains Mono,monospace'}}>{pct}%</span>
+                    </div>
+                  </td>
+                  <td>
+                    <div className="step-dots">
+                      {STEPS.map(s => {
+                        const st = c.steps?.[s.id]?.status||'pending';
+                        return <div key={s.id} className="step-dot" style={{background:stepColor(st)}} title={s.label+': '+st}/>;
+                      })}
+                    </div>
+                  </td>
+                </tr>
+              );
+            })}
+            {filtered.length===0 && (
+              <tr><td colSpan={7} style={{textAlign:'center',padding:24,color:'#6e7681'}}>No cables found</td></tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      {selCable && (
+        <CableDetail cable={selCable} equipment={equipment} isSuper={isSuper} onUpdate={updateCable}/>
+      )}
+    </div>
+  );
+}
+
+// ─── New Project Modal ────────────────────────────────────────────────────────
+function NewProjectModal({ onSave, onClose }) {
+  const [name, setName] = useState('');
+  const [site, setSite] = useState('');
+  const [desc, setDesc] = useState('');
+  return (
+    <div className="modal-backdrop" onClick={e=>e.target===e.currentTarget&&onClose()}>
+      <div className="modal">
+        <div className="modal-title">New WireFlow Project</div>
+        <div className="form-row"><label>Project Name *</label><input value={name} onChange={e=>setName(e.target.value)} placeholder="e.g. Data Center — Phase 2"/></div>
+        <div className="form-row"><label>Site / Location</label><input value={site} onChange={e=>setSite(e.target.value)} placeholder="e.g. Building A, Floor 2"/></div>
+        <div className="form-row"><label>Description</label><textarea rows={2} value={desc} onChange={e=>setDesc(e.target.value)} style={{resize:'vertical'}}/></div>
+        <div className="modal-footer">
+          <button className="btn" onClick={onClose}>Cancel</button>
+          <button className="btn btn-primary" disabled={!name.trim()} onClick={()=>onSave({name:name.trim(),site,desc,equipment:[],cables:[],createdAt:Date.now()})}>Create Project</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Import Modal ─────────────────────────────────────────────────────────────
+function ImportModal({ onImport, onClose, toast }) {
+  const [dragging, setDragging] = useState(false);
+  const fileRef = useRef();
+
+  function handleFile(file) {
+    const reader = new FileReader();
+    reader.onload = e => {
+      try {
+        const result = parseExcel(new Uint8Array(e.target.result));
+        if (!result.equipment.length && !result.cables.length) {
+          toast('No data found. Check sheet names: Equipment, Cables', 'error'); return;
+        }
+        onImport(result);
+      } catch(err) {
+        toast('Import failed: '+err.message, 'error');
+      }
+    };
+    reader.readAsArrayBuffer(file);
+  }
+
+  return (
+    <div className="modal-backdrop" onClick={e=>e.target===e.currentTarget&&onClose()}>
+      <div className="modal" style={{minWidth:480}}>
+        <div className="modal-title">Import from Excel</div>
+        <p style={{color:'#8b949e',fontSize:14,marginBottom:16}}>Upload an Excel file with Equipment and Cables sheets. Download the template to see the expected format.</p>
+        <input ref={fileRef} type="file" accept=".xlsx,.xls" style={{display:'none'}} onChange={e=>handleFile(e.target.files[0])}/>
+        <div className={`photo-upload ${dragging?'drag-over':''}`} style={{marginBottom:16}}
+          onDragOver={e=>{e.preventDefault();setDragging(true)}}
+          onDragLeave={()=>setDragging(false)}
+          onDrop={e=>{e.preventDefault();setDragging(false);handleFile(e.dataTransfer.files[0])}}
+          onClick={()=>fileRef.current.click()}>
+          📂 Drop Excel file here, or click to browse
+        </div>
+        <div className="modal-footer">
+          <button className="btn" onClick={onClose}>Cancel</button>
+          <button className="btn btn-yellow" onClick={downloadTemplate}>⬇ Download Template</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Add Equipment Modal ──────────────────────────────────────────────────────
+function AddEquipmentModal({ equipment, onSave, onClose }) {
+  const [id, setId]       = useState('eq'+uid());
+  const [tag, setTag]     = useState('');
+  const [type, setType]   = useState('LV_SW');
+  const [label, setLabel] = useState('');
+  const [zone, setZone]   = useState('');
+  const [parent, setParent] = useState('');
+  return (
+    <div className="modal-backdrop" onClick={e=>e.target===e.currentTarget&&onClose()}>
+      <div className="modal" style={{minWidth:520}}>
+        <div className="modal-title">Add Equipment</div>
+        <div className="eq-type-grid">
+          {Object.entries(EQ_TYPES).map(([k,v])=>(
+            <div key={k} className={`eq-type-btn ${type===k?'active':''}`} onClick={()=>setType(k)}>
+              {v.icon} {v.label}
+            </div>
+          ))}
+        </div>
+        <div className="form-grid form-row">
+          <div><label>Equipment ID *</label><input value={id} onChange={e=>setId(e.target.value)} placeholder="eq1"/></div>
+          <div><label>Tag *</label><input value={tag} onChange={e=>setTag(e.target.value)} placeholder="TX-01"/></div>
+        </div>
+        <div className="form-grid form-row">
+          <div><label>Label</label><input value={label} onChange={e=>setLabel(e.target.value)} placeholder="Main Transformer"/></div>
+          <div><label>Zone / Room</label><input value={zone} onChange={e=>setZone(e.target.value)} placeholder="Switchroom"/></div>
+        </div>
+        <div className="form-row">
+          <label>Parent Equipment (feeds from)</label>
+          <select value={parent} onChange={e=>setParent(e.target.value)}>
+            <option value="">— None (root) —</option>
+            {equipment.map(e=><option key={e.id} value={e.id}>{e.tag} — {e.label}</option>)}
+          </select>
+        </div>
+        <div className="modal-footer">
+          <button className="btn" onClick={onClose}>Cancel</button>
+          <button className="btn btn-primary" disabled={!id.trim()||!tag.trim()} onClick={()=>onSave({id,tag,type,label,zone,parentId:parent,steps:{}})}>Add Equipment</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Add Cable Modal ──────────────────────────────────────────────────────────
+function AddCableModal({ equipment, onSave, onClose }) {
+  const [tag, setTag]       = useState('');
+  const [circuit, setCircuit] = useState('');
+  const [cableType, setCableType] = useState('XLPE 4/C #2 AWG');
+  const [voltage, setVoltage] = useState('600V');
+  const [conductors, setConductors] = useState('4');
+  const [conduit, setConduit] = useState('');
+  const [fromId, setFromId] = useState('');
+  const [toId, setToId]     = useState('');
+  const [zone, setZone]     = useState('');
+  const [sub, setSub]       = useState('');
+  return (
+    <div className="modal-backdrop" onClick={e=>e.target===e.currentTarget&&onClose()}>
+      <div className="modal" style={{minWidth:560}}>
+        <div className="modal-title">Add Cable</div>
+        <div className="form-grid form-row">
+          <div><label>Cable Tag *</label><input value={tag} onChange={e=>setTag(e.target.value)} placeholder="C-001"/></div>
+          <div><label>Circuit #</label><input value={circuit} onChange={e=>setCircuit(e.target.value)} placeholder="CB-001"/></div>
+        </div>
+        <div className="form-grid form-row">
+          <div><label>From Equipment *</label>
+            <select value={fromId} onChange={e=>setFromId(e.target.value)}>
+              <option value="">— Select source —</option>
+              {equipment.map(e=><option key={e.id} value={e.id}>{e.tag} — {e.label}</option>)}
+            </select>
+          </div>
+          <div><label>To Equipment *</label>
+            <select value={toId} onChange={e=>setToId(e.target.value)}>
+              <option value="">— Select destination —</option>
+              {equipment.map(e=><option key={e.id} value={e.id}>{e.tag} — {e.label}</option>)}
+            </select>
+          </div>
+        </div>
+        <div className="form-grid-3 form-row">
+          <div><label>Cable Type</label><input value={cableType} onChange={e=>setCableType(e.target.value)}/></div>
+          <div><label>Voltage</label><input value={voltage} onChange={e=>setVoltage(e.target.value)}/></div>
+          <div><label>Conductors</label><input value={conductors} onChange={e=>setConductors(e.target.value)}/></div>
+        </div>
+        <div className="form-grid form-row">
+          <div><label>Conduit ID</label><input value={conduit} onChange={e=>setConduit(e.target.value)} placeholder="CDT-01"/></div>
+          <div><label>Zone / Room</label><input value={zone} onChange={e=>setZone(e.target.value)}/></div>
+        </div>
+        <div className="form-row"><label>Sub Trade</label><input value={sub} onChange={e=>setSub(e.target.value)} placeholder="e.g. Alpha Electric"/></div>
+        <div className="modal-footer">
+          <button className="btn" onClick={onClose}>Cancel</button>
+          <button className="btn btn-primary" disabled={!tag.trim()||!fromId||!toId}
+            onClick={()=>onSave({id:uid(),tag,circuit,cableType,voltage,conductors,conduit,fromId,toId,zone,subTrade:sub,notes:'',steps:{}})}>
+            Add Cable
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Project Editor ───────────────────────────────────────────────────────────
+function ProjectEditor({ project, onUpdate, onBack, toast }) {
+  const [view, setView] = useState('split'); // 'diagram','split','tracker'
+  const [isSuper, setIsSuper] = useState(false);
+  const [modal, setModal] = useState(null);
+
+  function updateProject(p) { onUpdate(p); }
+  function addEquipment(eq) {
+    updateProject({...project, equipment:[...(project.equipment||[]), eq]});
+    setModal(null);
+    toast('Equipment added: '+eq.tag, 'success');
+  }
+  function addCable(cable) {
+    updateProject({...project, cables:[...(project.cables||[]), cable]});
+    setModal(null);
+    toast('Cable added: '+cable.tag, 'success');
+  }
+  function importData(data) {
+    updateProject({...project, equipment:data.equipment, cables:data.cables});
+    setModal(null);
+    toast(`Imported ${data.equipment.length} equipment + ${data.cables.length} cables`, 'success');
+  }
+
+  const showDiagram = view==='diagram'||view==='split';
+  const showTracker = view==='tracker'||view==='split';
+
+  return (
+    <div className="editor" style={{flex:1,overflow:'hidden',display:'flex',flexDirection:'column'}}>
+      <div className="editor-bar">
+        <button className="btn btn-sm" onClick={onBack}>← Projects</button>
+        <div>
+          <div className="editor-bar-title">{project.name}</div>
+          {project.site && <div className="editor-bar-site">{project.site}</div>}
+        </div>
+        <div style={{display:'flex',gap:8,marginLeft:16}}>
+          <button className="btn btn-sm" onClick={()=>setModal('eq')}>+ Equipment</button>
+          <button className="btn btn-sm" onClick={()=>setModal('cable')}>+ Cable</button>
+          <button className="btn btn-sm" onClick={()=>setModal('import')}>↑ Import</button>
+          <button className="btn btn-sm" onClick={()=>exportProject(project)}>↓ Export</button>
+        </div>
+        <div className="view-toggle" style={{marginLeft:12}}>
+          {['diagram','split','tracker'].map(v=>(
+            <button key={v} className={`view-btn ${view===v?'active':''}`} onClick={()=>setView(v)}>
+              {v==='diagram'?'One-Line':v==='split'?'Split':'Tracker'}
+            </button>
+          ))}
+        </div>
+        <div style={{marginLeft:12,display:'flex',alignItems:'center',gap:8}}>
+          <label style={{marginBottom:0,display:'flex',alignItems:'center',gap:6,cursor:'pointer',fontSize:13,color:'#8b949e'}}>
+            <input type="checkbox" checked={isSuper} onChange={e=>setIsSuper(e.target.checked)} style={{width:'auto'}}/>
+            Superintendent Mode
+          </label>
+        </div>
+      </div>
+
+      <div className="editor-body" style={{flex:1,overflow:'hidden'}}>
+        {showDiagram && (
+          <div style={{flex:view==='split'?'0 0 50%':'1',borderRight:view==='split'?'1px solid var(--border)':'none',display:'flex',overflow:'hidden'}}>
+            <OneLineCanvas project={project} selectedCable={null} onSelectCable={()=>{}} viewMode={view}/>
+          </div>
+        )}
+        {showTracker && (
+          <TrackerPanel project={project} isSuper={isSuper} onUpdate={updateProject}/>
+        )}
+      </div>
+
+      {modal==='eq' && <AddEquipmentModal equipment={project.equipment||[]} onSave={addEquipment} onClose={()=>setModal(null)}/>}
+      {modal==='cable' && <AddCableModal equipment={project.equipment||[]} onSave={addCable} onClose={()=>setModal(null)}/>}
+      {modal==='import' && <ImportModal onImport={importData} onClose={()=>setModal(null)} toast={toast}/>}
+    </div>
+  );
+}
+
+// ─── Home Screen ──────────────────────────────────────────────────────────────
+function HomeScreen({ projects, onOpen, onCreate, onDelete, toast }) {
+  const [newModal, setNewModal] = useState(false);
+
+  function createProject(data) {
+    onCreate({...data, id:uid()});
+    setNewModal(false);
+    toast('Project created: '+data.name, 'success');
+  }
+
+  return (
+    <div className="home">
+      <div className="home-header">
+        <div className="home-title">Projects</div>
+        <div style={{marginLeft:'auto',display:'flex',gap:8}}>
+          <button className="btn btn-yellow btn-sm" onClick={downloadTemplate}>⬇ Template</button>
+          <button className="btn btn-primary" onClick={()=>setNewModal(true)}>+ New Project</button>
+        </div>
+      </div>
+      <div className="project-grid">
+        <div className="new-project-card" onClick={()=>setNewModal(true)}>
+          <span style={{fontSize:24}}>+</span> New Project
+        </div>
+        {projects.map(p => {
+          const cables = p.cables||[];
+          const complete = cables.filter(c=>cableProgress(c).pct===100).length;
+          const pct = cables.length ? Math.round(cables.reduce((a,c)=>a+cableProgress(c).pct,0)/cables.length) : 0;
+          return (
+            <div key={p.id} className="project-card" onClick={()=>onOpen(p.id)}>
+              <div className="pc-name">{p.name}</div>
+              <div className="pc-meta">{p.site||'No location'} · {new Date(p.createdAt).toLocaleDateString()}</div>
+              <div className="pc-stats">
+                <div className="pc-stat"><div className="pc-stat-val">{p.equipment?.length||0}</div><div className="pc-stat-label">Equipment</div></div>
+                <div className="pc-stat"><div className="pc-stat-val">{cables.length}</div><div className="pc-stat-label">Cables</div></div>
+                <div className="pc-stat"><div className="pc-stat-val" style={{color:'#3fb950'}}>{complete}</div><div className="pc-stat-label">Done</div></div>
+                <div className="pc-stat"><div className="pc-stat-val" style={{color:'#39d0d8'}}>{pct}%</div><div className="pc-stat-label">Progress</div></div>
+              </div>
+              <div className="pc-bar-wrap">
+                <div className="pc-bar" style={{width:pct+'%'}}/>
+              </div>
+              <div style={{display:'flex',justifyContent:'flex-end',marginTop:12}}>
+                <button className="btn btn-red btn-xs" onClick={e=>{e.stopPropagation();if(confirm('Delete project?'))onDelete(p.id);}}>Delete</button>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+      {newModal && <NewProjectModal onSave={createProject} onClose={()=>setNewModal(false)}/>}
+    </div>
+  );
+}
+
+// ─── App Root ─────────────────────────────────────────────────────────────────
+function App() {
+  const [data, setData] = useState(loadData);
+  const [activeId, setActiveId] = useState(null);
+  const { toasts, toast } = useToast();
+
+  useEffect(() => { saveData(data); }, [data]);
+
+  const activeProject = data.projects.find(p=>p.id===activeId);
+
+  function setProjects(fn) {
+    setData(d => ({...d, projects: typeof fn==='function'?fn(d.projects):fn}));
+  }
+
+  function createProject(p) { setProjects(ps=>[p,...ps]); setActiveId(p.id); }
+  function updateProject(p) { setProjects(ps=>ps.map(x=>x.id===p.id?p:x)); }
+  function deleteProject(id) { setProjects(ps=>ps.filter(p=>p.id!==id)); if(activeId===id)setActiveId(null); }
+
+  return (
+    <div className="app">
+      <div className="topbar">
+        <div className="topbar-logo" style={{cursor:'pointer'}} onClick={()=>setActiveId(null)}>
+          ⚡ WireFlow <span>Point-to-Point Electrical Tracker</span>
+        </div>
+        {activeProject && (
+          <div style={{fontSize:13,color:'#8b949e'}}>
+            {activeProject.name}
+          </div>
+        )}
+        <div className="topbar-right">
+          <span style={{fontSize:12,color:'#6e7681'}}>v1.0 · localStorage</span>
+        </div>
+      </div>
+
+      {activeProject ? (
+        <ProjectEditor
+          project={activeProject}
+          onUpdate={updateProject}
+          onBack={()=>setActiveId(null)}
+          toast={toast}/>
+      ) : (
+        <HomeScreen
+          projects={data.projects}
+          onOpen={setActiveId}
+          onCreate={createProject}
+          onDelete={deleteProject}
+          toast={toast}/>
+      )}
+
+      <ToastList toasts={toasts}/>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>
